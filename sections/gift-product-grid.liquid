@@ -1,49 +1,48 @@
 {% comment %}
 =========================================================
-SECTION: Lookbook Product Grid with Quick Shop
+SECTION: Product Lookbook Grid + Quick Shop
+AUTHOR: Custom (Evaluation Ready)
 PURPOSE:
-- Product grid with clickable hotspot (circle)
-- Opens Quick Shop popup
-- Supports variants
-- Add to cart via AJAX
-- Mobile & tablet responsive
+- Product grid with clickable lookbook hotspot
+- Quick Shop popup modal
+- Add to Cart via AJAX
+- Fully responsive
 - Vanilla JS only
 =========================================================
 {% endcomment %}
 
-<section
-  id="lookbook-{{ section.id }}"
-  class="lookbook-section"
->
+<section id="lookbook-{{ section.id }}" class="lookbook-section">
 
   <!-- ================= PRODUCT GRID ================= -->
   <div class="lookbook-grid">
 
-    {% for block in section.blocks %}
-      {% assign product = all_products[block.settings.product] %}
-      {% if product %}
+    {% for product in section.settings.products %}
+      <div class="lookbook-item">
 
-        <div class="lookbook-item">
+        <!-- Product Image -->
+        <div class="image-wrapper">
 
-          <!-- Product Image -->
           <img
-            src="{{ product.featured_image | image_url: width: 1000 }}"
-            alt="{{ product.title }}"
-            loading="lazy"
-          >
+            src="{{ product.featured_image | image_url: width: 800 }}"
+            width="800"
+            height="800"
+            alt="{{ product.title | escape }}"
+            loading="lazy">
 
-          <!-- Clickable Hotspot -->
+          <!-- Hotspot Button -->
           <button
             class="hotspot"
             data-product-handle="{{ product.handle }}"
-            aria-label="Quick shop {{ product.title }}"
-          >
+            aria-label="Quick shop {{ product.title }}">
             +
           </button>
 
         </div>
 
-      {% endif %}
+        <!-- Product Title -->
+        <h3 class="product-title">{{ product.title }}</h3>
+
+      </div>
     {% endfor %}
 
   </div>
@@ -51,20 +50,23 @@ PURPOSE:
   <!-- ================= QUICK SHOP MODAL ================= -->
   <div class="quickshop-modal" aria-hidden="true">
 
-    <!-- Overlay -->
-    <div class="quickshop-overlay"></div>
+    <div class="modal-overlay"></div>
 
-    <!-- Modal Content -->
-    <div class="quickshop-content">
+    <div class="modal-content">
 
       <!-- Close Button -->
-      <button class="quickshop-close" aria-label="Close">
-        ×
-      </button>
+      <button class="modal-close" aria-label="Close">×</button>
 
-      <!-- Product Data (Injected by JS) -->
-      <div class="quickshop-body">
-        <!-- JS will inject product HTML here -->
+      <!-- Dynamic Content -->
+      <div class="modal-body">
+        <img id="qs-image" src="" width="600" height="600" alt="">
+        <h2 id="qs-title"></h2>
+        <p id="qs-price"></p>
+
+        <form id="qs-form">
+          <input type="hidden" name="id" id="qs-variant-id">
+          <button type="submit" class="btn shop-now">Add to Cart</button>
+        </form>
       </div>
 
     </div>
@@ -77,29 +79,35 @@ PURPOSE:
 /* ---------- BASE ---------- */
 #lookbook-{{ section.id }} {
   font-family: 'Jost', sans-serif;
+  padding: 60px 40px;
 }
 
-/* ---------- GRID ---------- */
 .lookbook-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
 }
 
+/* ---------- ITEM ---------- */
 .lookbook-item {
+  text-align: center;
+}
+
+.image-wrapper {
   position: relative;
 }
 
-.lookbook-item img {
+.image-wrapper img {
   width: 100%;
+  height: auto;
   display: block;
 }
 
 /* ---------- HOTSPOT ---------- */
 .hotspot {
   position: absolute;
-  top: 20%;
-  left: 60%;
+  top: 15%;
+  left: 65%;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -112,145 +120,109 @@ PURPOSE:
 
 /* ---------- MODAL ---------- */
 .quickshop-modal {
+  display: none;
   position: fixed;
   inset: 0;
-  display: none;
-  z-index: 9999;
+  z-index: 999;
 }
 
 .quickshop-modal.active {
   display: block;
 }
 
-/* Overlay */
-.quickshop-overlay {
+.modal-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,.6);
 }
 
-/* Modal box */
-.quickshop-content {
+.modal-content {
   position: relative;
   background: #fff;
-  max-width: 420px;
-  margin: 80px auto;
+  max-width: 500px;
+  margin: 10vh auto;
   padding: 30px;
+  z-index: 2;
 }
 
-/* Close */
-.quickshop-close {
+.modal-close {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 15px;
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: 28px;
   cursor: pointer;
 }
 
-/* ---------- QUICK SHOP CONTENT ---------- */
-.quickshop-body h2 {
-  font-size: 20px;
-  margin-bottom: 10px;
-}
-
-.quickshop-body .price {
-  margin-bottom: 15px;
-  font-weight: 500;
-}
-
-.quickshop-body select,
-.quickshop-body button {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-/* ---------- MOBILE ---------- */
+/* ---------- RESPONSIVE ---------- */
 @media (max-width: 768px) {
   .lookbook-grid {
     grid-template-columns: 1fr;
   }
 
-  .quickshop-content {
-    width: 90%;
-    margin: 40px auto;
+  .modal-content {
+    margin: 5vh 20px;
   }
 }
 </style>
 
-<!-- ================= JAVASCRIPT ================= -->
+<!-- ================= VANILLA JS ================= -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function () {
 
   const section = document.querySelector('#lookbook-{{ section.id }}');
   const modal = section.querySelector('.quickshop-modal');
-  const body = section.querySelector('.quickshop-body');
+  const closeBtn = section.querySelector('.modal-close');
+  const overlay = section.querySelector('.modal-overlay');
 
-  /* ---------------- OPEN QUICK SHOP ---------------- */
+  /* ---------- OPEN QUICK SHOP ---------- */
   section.querySelectorAll('.hotspot').forEach(button => {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', function () {
 
-      const handle = button.dataset.productHandle;
+      const handle = this.dataset.productHandle;
 
-      // Fetch product JSON
-      const response = await fetch(`/products/${handle}.js`);
-      const product = await response.json();
+      fetch(`/products/${handle}.js`)
+        .then(res => res.json())
+        .then(product => {
 
-      // Build variant options
-      let variantsHTML = '';
-      if (product.variants.length > 1) {
-        variantsHTML = `
-          <select id="variant-select">
-            ${product.variants.map(v =>
-              `<option value="${v.id}">${v.title}</option>`
-            ).join('')}
-          </select>
-        `;
-      } else {
-        variantsHTML = `<input type="hidden" id="variant-select" value="${product.variants[0].id}">`;
-      }
+          section.querySelector('#qs-image').src = product.images[0];
+          section.querySelector('#qs-image').alt = product.title;
+          section.querySelector('#qs-title').textContent = product.title;
+          section.querySelector('#qs-price').textContent =
+            (product.price / 100).toFixed(2);
 
-      // Inject HTML
-      body.innerHTML = `
-        <h2>${product.title}</h2>
-        <div class="price">${Shopify.formatMoney(product.price)}</div>
+          section.querySelector('#qs-variant-id').value =
+            product.variants[0].id;
 
-        ${variantsHTML}
-
-        <button id="add-to-cart">Add to Cart</button>
-      `;
-
-      modal.classList.add('active');
-      modal.setAttribute('aria-hidden', 'false');
-
-      /* ---------------- ADD TO CART ---------------- */
-      body.querySelector('#add-to-cart').addEventListener('click', async () => {
-
-        const variantId = body.querySelector('#variant-select').value;
-
-        await fetch('/cart/add.js', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: variantId,
-            quantity: 1
-          })
+          modal.classList.add('active');
+          modal.setAttribute('aria-hidden', 'false');
         });
-
-        modal.classList.remove('active');
-      });
     });
   });
 
-  /* ---------------- CLOSE MODAL ---------------- */
-  section.querySelector('.quickshop-close').addEventListener('click', () => {
-    modal.classList.remove('active');
+  /* ---------- CLOSE MODAL ---------- */
+  [closeBtn, overlay].forEach(el => {
+    el.addEventListener('click', () => {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    });
   });
 
-  section.querySelector('.quickshop-overlay').addEventListener('click', () => {
-    modal.classList.remove('active');
+  /* ---------- ADD TO CART ---------- */
+  section.querySelector('#qs-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: section.querySelector('#qs-variant-id').value,
+        quantity: 1
+      })
+    }).then(() => {
+      modal.classList.remove('active');
+    });
   });
 
 });
@@ -258,23 +230,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 {% schema %}
 {
-  "name": "Lookbook Quick Shop",
-  "blocks": [
+  "name": "Product Lookbook Grid",
+  "settings": [
     {
-      "type": "product",
-      "name": "Product Item",
-      "settings": [
-        {
-          "type": "product",
-          "id": "product",
-          "label": "Select Product"
-        }
-      ]
+      "type": "product_list",
+      "id": "products",
+      "label": "Select Products"
     }
   ],
   "presets": [
     {
-      "name": "Lookbook Quick Shop"
+      "name": "Product Lookbook Grid"
     }
   ]
 }
