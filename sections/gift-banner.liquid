@@ -207,17 +207,20 @@ Responsive, schema-driven, vanilla JS
   background: #fff544;
   color: #000;
 }
+
 .choose-gift::before {
   background: #000;
-  color: #fff544;
-  
 }
+
+/* Hover state */
 .choose-gift:hover::before {
   transform: translateX(0);
 }
+
 .choose-gift:hover {
-  color: #fff544;
+  color: #fff; /* ✅ TEXT TURNS WHITE */
 }
+
 
 /* Shop Now */
 .shop-now {
