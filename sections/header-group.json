@@ -128,11 +128,63 @@
         "hero_button_link": "",
         "info_text": "SUSTAINABLE, ETHICALLY MADE ACTIVEWEAR"
       }
+    },
+    "gift_product_grid_BEUrza": {
+      "type": "gift-product-grid",
+      "blocks": {
+        "product_Cfq9hp": {
+          "type": "product",
+          "settings": {
+            "product": "black-leather-bag"
+          }
+        },
+        "product_98Umi9": {
+          "type": "product",
+          "settings": {
+            "product": "blue-silk-tuxedo"
+          }
+        },
+        "product_Y9eF6f": {
+          "type": "product",
+          "settings": {
+            "product": "chequered-red-shirt"
+          }
+        },
+        "product_RWfwbV": {
+          "type": "product",
+          "settings": {
+            "product": "classic-leather-jacket"
+          }
+        },
+        "product_nEqnLW": {
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top"
+          }
+        },
+        "product_C77kQt": {
+          "type": "product",
+          "settings": {
+            "product": "dark-denim-top"
+          }
+        }
+      },
+      "block_order": [
+        "product_Cfq9hp",
+        "product_98Umi9",
+        "product_Y9eF6f",
+        "product_RWfwbV",
+        "product_nEqnLW",
+        "product_C77kQt"
+      ],
+      "name": "Product Grid with Quick Shop",
+      "settings": {}
     }
   },
   "order": [
     "header_announcements_9jGBFp",
     "header_section",
-    "gift_banner_VWzLXw"
+    "gift_banner_VWzLXw",
+    "gift_product_grid_BEUrza"
   ]
 }
