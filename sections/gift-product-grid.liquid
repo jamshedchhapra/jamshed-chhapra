@@ -1,322 +1,280 @@
 {% comment %}
 =========================================================
-SECTION: Product Grid with Quick Shop Popup
+SECTION: Lookbook Product Grid with Quick Shop
 PURPOSE:
-- Display a 6-product grid
-- Each product opens a Quick Shop popup
-- Popup supports variants + add to cart
-- Fully responsive (desktop + mobile)
-- Built from scratch (no theme reuse)
-- Vanilla JavaScript only
+- Product grid with clickable hotspot (circle)
+- Opens Quick Shop popup
+- Supports variants
+- Add to cart via AJAX
+- Mobile & tablet responsive
+- Vanilla JS only
 =========================================================
 {% endcomment %}
 
-<section class="product-grid" id="product-grid-{{ section.id }}">
+<section
+  id="lookbook-{{ section.id }}"
+  class="lookbook-section"
+>
 
   <!-- ================= PRODUCT GRID ================= -->
-  <div class="grid-wrapper">
+  <div class="lookbook-grid">
 
     {% for block in section.blocks %}
-      {% assign product = block.settings.product %}
+      {% assign product = all_products[block.settings.product] %}
+      {% if product %}
 
-      {% if product != blank %}
-        <div class="grid-item">
+        <div class="lookbook-item">
 
           <!-- Product Image -->
           <img
-            src="{{ product.featured_image | image_url: width: 800 }}"
-            width="800"
-            height="1000"
+            src="{{ product.featured_image | image_url: width: 1000 }}"
             alt="{{ product.title }}"
-            loading="lazy">
+            loading="lazy"
+          >
 
-          <!-- Lookbook Trigger -->
+          <!-- Clickable Hotspot -->
           <button
-            class="quickshop-trigger"
+            class="hotspot"
+            data-product-handle="{{ product.handle }}"
             aria-label="Quick shop {{ product.title }}"
-            data-product-handle="{{ product.handle }}">
+          >
+            +
           </button>
 
         </div>
+
       {% endif %}
     {% endfor %}
 
   </div>
 
-  <!-- ================= QUICK SHOP POPUP ================= -->
-  <div class="quickshop-overlay" aria-hidden="true">
+  <!-- ================= QUICK SHOP MODAL ================= -->
+  <div class="quickshop-modal" aria-hidden="true">
 
-    <div class="quickshop-modal">
+    <!-- Overlay -->
+    <div class="quickshop-overlay"></div>
+
+    <!-- Modal Content -->
+    <div class="quickshop-content">
 
       <!-- Close Button -->
-      <button class="quickshop-close" aria-label="Close popup">✕</button>
+      <button class="quickshop-close" aria-label="Close">
+        ×
+      </button>
 
-      <!-- Popup Content (Injected by JS) -->
-      <div class="quickshop-content">
-        <!-- Dynamic -->
+      <!-- Product Data (Injected by JS) -->
+      <div class="quickshop-body">
+        <!-- JS will inject product HTML here -->
       </div>
 
     </div>
-
   </div>
 
 </section>
 
 <!-- ================= STYLES ================= -->
 <style>
-/* ---------- GRID LAYOUT ---------- */
-#product-grid-{{ section.id }} {
+/* ---------- BASE ---------- */
+#lookbook-{{ section.id }} {
   font-family: 'Jost', sans-serif;
 }
 
-.grid-wrapper {
+/* ---------- GRID ---------- */
+.lookbook-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
-  padding: 60px;
 }
 
-.grid-item {
+.lookbook-item {
   position: relative;
 }
 
-.grid-item img {
+.lookbook-item img {
   width: 100%;
-  height: auto;
   display: block;
 }
 
-/* ---------- LOOKBOOK CIRCLE ---------- */
-.quickshop-trigger {
+/* ---------- HOTSPOT ---------- */
+.hotspot {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 18px;
-  height: 18px;
-  background: #000;
+  top: 20%;
+  left: 60%;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
   border: none;
-}
-
-.quickshop-trigger::after {
-  content: '+';
-  position: absolute;
+  background: #000;
   color: #fff;
-  font-size: 14px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  font-size: 22px;
+  cursor: pointer;
 }
 
-/* ---------- POPUP OVERLAY ---------- */
-.quickshop-overlay {
+/* ---------- MODAL ---------- */
+.quickshop-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.5);
   display: none;
-  align-items: center;
-  justify-content: center;
   z-index: 9999;
 }
 
-.quickshop-overlay.active {
-  display: flex;
+.quickshop-modal.active {
+  display: block;
 }
 
-/* ---------- POPUP MODAL ---------- */
-.quickshop-modal {
-  background: #fff;
-  max-width: 500px;
-  width: 90%;
-  padding: 30px;
+/* Overlay */
+.quickshop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+}
+
+/* Modal box */
+.quickshop-content {
   position: relative;
+  background: #fff;
+  max-width: 420px;
+  margin: 80px auto;
+  padding: 30px;
 }
 
-/* Close Button */
+/* Close */
 .quickshop-close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  border: none;
+  top: 10px;
+  right: 10px;
   background: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-/* ---------- POPUP CONTENT ---------- */
-.quickshop-content h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.quickshop-price {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.quickshop-description {
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-
-/* ---------- VARIANTS ---------- */
-.variant-group {
-  margin-bottom: 15px;
-}
-
-.variant-group label {
-  display: block;
-  font-size: 12px;
-  margin-bottom: 5px;
-}
-
-.variant-group select {
-  width: 100%;
-  padding: 8px;
-}
-
-/* ---------- ADD TO CART ---------- */
-.quickshop-add {
-  width: 100%;
-  padding: 14px;
-  background: #000;
-  color: #fff;
   border: none;
+  font-size: 22px;
   cursor: pointer;
-  text-transform: uppercase;
+}
+
+/* ---------- QUICK SHOP CONTENT ---------- */
+.quickshop-body h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.quickshop-body .price {
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.quickshop-body select,
+.quickshop-body button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
 /* ---------- MOBILE ---------- */
 @media (max-width: 768px) {
-  .grid-wrapper {
-    grid-template-columns: 1fr 1fr;
-    padding: 30px 20px;
+  .lookbook-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickshop-content {
+    width: 90%;
+    margin: 40px auto;
   }
 }
 </style>
 
 <!-- ================= JAVASCRIPT ================= -->
 <script>
-/*
-=================================================
-Quick Shop Functionality
-- Fetch product JSON
-- Render popup dynamically
-- Handle variants
-- Add to cart via AJAX
-=================================================
-*/
+document.addEventListener('DOMContentLoaded', () => {
 
-document.addEventListener('DOMContentLoaded', function () {
+  const section = document.querySelector('#lookbook-{{ section.id }}');
+  const modal = section.querySelector('.quickshop-modal');
+  const body = section.querySelector('.quickshop-body');
 
-  const section = document.querySelector('#product-grid-{{ section.id }}');
-  const overlay = section.querySelector('.quickshop-overlay');
-  const content = section.querySelector('.quickshop-content');
-  const closeBtn = section.querySelector('.quickshop-close');
+  /* ---------------- OPEN QUICK SHOP ---------------- */
+  section.querySelectorAll('.hotspot').forEach(button => {
+    button.addEventListener('click', async () => {
 
-  /* ---------- OPEN POPUP ---------- */
-  section.querySelectorAll('.quickshop-trigger').forEach(button => {
-    button.addEventListener('click', function () {
+      const handle = button.dataset.productHandle;
 
-      const handle = this.dataset.productHandle;
+      // Fetch product JSON
+      const response = await fetch(`/products/${handle}.js`);
+      const product = await response.json();
 
-      fetch(`/products/${handle}.js`)
-        .then(res => res.json())
-        .then(product => {
-          renderQuickShop(product);
-          overlay.classList.add('active');
-        });
-
-    });
-  });
-
-  /* ---------- CLOSE POPUP ---------- */
-  closeBtn.addEventListener('click', () => {
-    overlay.classList.remove('active');
-  });
-
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('active');
-  });
-
-  /* ---------- RENDER QUICK SHOP ---------- */
-  function renderQuickShop(product) {
-
-    let variantsHTML = '';
-
-    product.options.forEach((option, index) => {
-      variantsHTML += `
-        <div class="variant-group">
-          <label>${option}</label>
-          <select data-option-index="${index}">
-            ${product.options_with_values[index].values.map(value =>
-              `<option value="${value}">${value}</option>`
+      // Build variant options
+      let variantsHTML = '';
+      if (product.variants.length > 1) {
+        variantsHTML = `
+          <select id="variant-select">
+            ${product.variants.map(v =>
+              `<option value="${v.id}">${v.title}</option>`
             ).join('')}
           </select>
-        </div>
+        `;
+      } else {
+        variantsHTML = `<input type="hidden" id="variant-select" value="${product.variants[0].id}">`;
+      }
+
+      // Inject HTML
+      body.innerHTML = `
+        <h2>${product.title}</h2>
+        <div class="price">${Shopify.formatMoney(product.price)}</div>
+
+        ${variantsHTML}
+
+        <button id="add-to-cart">Add to Cart</button>
       `;
-    });
 
-    content.innerHTML = `
-      <h2>${product.title}</h2>
-      <div class="quickshop-price">${Shopify.formatMoney(product.price)}</div>
-      <div class="quickshop-description">${product.description}</div>
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
 
-      ${variantsHTML}
+      /* ---------------- ADD TO CART ---------------- */
+      body.querySelector('#add-to-cart').addEventListener('click', async () => {
 
-      <button class="quickshop-add">Add to Cart</button>
-    `;
+        const variantId = body.querySelector('#variant-select').value;
 
-    /* ---------- ADD TO CART ---------- */
-    content.querySelector('.quickshop-add').addEventListener('click', () => {
-      const selectedOptions = [];
-      content.querySelectorAll('select').forEach(select => {
-        selectedOptions.push(select.value);
+        await fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: variantId,
+            quantity: 1
+          })
+        });
+
+        modal.classList.remove('active');
       });
-
-      const variant = product.variants.find(v =>
-        v.options.every((opt, i) => opt === selectedOptions[i])
-      );
-
-      fetch('/cart/add.js', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: variant.id,
-          quantity: 1
-        })
-      });
-
-      overlay.classList.remove('active');
     });
+  });
 
-  }
+  /* ---------------- CLOSE MODAL ---------------- */
+  section.querySelector('.quickshop-close').addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
+
+  section.querySelector('.quickshop-overlay').addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
 
 });
 </script>
 
 {% schema %}
 {
-  "name": "Product Grid – Quick Shop",
+  "name": "Lookbook Quick Shop",
   "blocks": [
     {
       "type": "product",
-      "name": "Product",
+      "name": "Product Item",
       "settings": [
         {
           "type": "product",
           "id": "product",
-          "label": "Select product"
+          "label": "Select Product"
         }
       ]
     }
   ],
-  "max_blocks": 6,
   "presets": [
     {
-      "name": "Product Grid with Quick Shop"
+      "name": "Lookbook Quick Shop"
     }
   ]
 }
