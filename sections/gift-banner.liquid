@@ -241,7 +241,7 @@ Responsive, schema-driven, vanilla JS
 .desktop-only { display: inline-flex; }
 .mobile-only { display: none; }
 
-/*@media (max-width: 768px) {
+@media (max-width: 768px) {
   .hamburger { display: block; }
   .topbar-heading,
   .desktop-only { display: none; }
@@ -262,30 +262,8 @@ Responsive, schema-driven, vanilla JS
   .mobile-menu.active {
     display: block;
   }
-}*/
-@media (max-width: 768px) {
-
-  /* Make topbar a positioning context */
-  .topbar-inner {
-    position: relative;
-    justify-content: flex-start;
-  }
-
-  /* Keep hamburger on the left */
-  .hamburger {
-    position: relative;
-    z-index: 2;
-  }
-
-  /* Center logo text horizontally */
-  .topbar-logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    width: max-content;
-  }
 }
+
 </style>
 
 <!-- ================= JS ================= -->
