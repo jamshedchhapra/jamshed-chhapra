@@ -1,0 +1,286 @@
+{% comment %}
+  =========================================================
+  SECTION: Gift Banner
+  PURPOSE:
+  - Custom top bar + hero banner + info bar
+  - Built from scratch (no Dawn/Horizon reuse)
+  - Fully editable via schema
+  - Responsive (desktop + mobile)
+  - Vanilla JS only
+  =========================================================
+{% endcomment %}
+
+<section class="gift-banner" id="gift-banner-{{ section.id }}">
+
+  <!-- ================= TOP BAR ================= -->
+  <div class="gift-topbar">
+    <div class="topbar-inner">
+
+      <!-- Logo Text -->
+      <div class="topbar-logo">
+        {{ section.settings.logo_text }}
+      </div>
+
+      <!-- Center Heading -->
+      <div class="topbar-heading">
+        {{ section.settings.topbar_heading }}
+      </div>
+
+      <!-- Animated Button -->
+      <a href="{{ section.settings.topbar_button_link }}" class="btn-slide btn-slide-right">
+        <span>{{ section.settings.topbar_button_text }}</span>
+        <span class="arrow">→</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ================= HERO BANNER ================= -->
+  <div class="gift-hero"
+       style="background-image: url('{{ section.settings.banner_image | image_url }}');">
+
+    <div class="hero-content">
+      <h1>{{ section.settings.hero_heading }}</h1>
+      <p>{{ section.settings.hero_description }}</p>
+
+      <!-- Opposite animation direction -->
+      <a href="{{ section.settings.hero_button_link }}" class="btn-slide btn-slide-left">
+        <span>{{ section.settings.hero_button_text }}</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ================= INFO BAR ================= -->
+  <div class="gift-infobar">
+    {{ section.settings.info_text }}
+  </div>
+
+</section>
+
+<!-- ================= STYLES ================= -->
+<style>
+  /* ---------- BASE RESET ---------- */
+  #gift-banner-{{ section.id }} {
+    font-family: 'Jost', sans-serif;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .gift-topbar {
+    background: #f5f5f5;
+    padding: 20px 40px;
+  }
+
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-logo {
+    font-weight: 500;
+    font-size: 20px;
+  }
+
+  .topbar-heading {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  /* ---------- HERO ---------- */
+  .gift-hero {
+    min-height: 520px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    padding: 60px;
+  }
+
+  .hero-content {
+    max-width: 500px;
+  }
+
+  .hero-content h1 {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .hero-content p {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+
+  /* ---------- INFO BAR ---------- */
+  .gift-infobar {
+    background: #f5f5f5;
+    text-align: center;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  /* ---------- BUTTON ANIMATION ---------- */
+  .btn-slide {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 26px;
+    font-size: 14px;
+    text-transform: uppercase;
+    overflow: hidden;
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+  }
+
+  .btn-slide::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #fff544;
+    top: 0;
+    transition: transform 0.3s ease;
+    z-index: 0;
+  }
+
+  .btn-slide span {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Right → Left */
+  .btn-slide-right::before {
+    left: 0;
+    transform: translateX(-100%);
+  }
+
+  .btn-slide-right:hover::before {
+    transform: translateX(0);
+  }
+
+  /* Left → Right */
+  .btn-slide-left::before {
+    right: 0;
+    transform: translateX(100%);
+  }
+
+  .btn-slide-left:hover::before {
+    transform: translateX(0);
+  }
+
+  .btn-slide:hover {
+    color: #000;
+  }
+
+  /* ---------- MOBILE ---------- */
+  @media (max-width: 768px) {
+
+    .topbar-inner {
+      justify-content: center;
+    }
+
+    .topbar-heading {
+      display: none;
+    }
+
+    .gift-hero {
+      padding: 40px 20px;
+      min-height: 420px;
+    }
+
+    .hero-content {
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .hero-content h1 {
+      font-size: 30px;
+    }
+
+    .hero-content p {
+      font-size: 16px;
+    }
+  }
+</style>
+
+<!-- ================= VANILLA JS ================= -->
+<script>
+  // Reserved for future interaction if required
+  // (Intentionally minimal as per instructions)
+</script>
+
+{% schema %}
+{
+  "name": "Gift Banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "Logo Text",
+      "default": "TISSO VISON"
+    },
+    {
+      "type": "text",
+      "id": "topbar_heading",
+      "label": "Top Bar Heading",
+      "default": "Find the ideal gift for your loved ones."
+    },
+    {
+      "type": "text",
+      "id": "topbar_button_text",
+      "label": "Top Bar Button Text",
+      "default": "Choose Gift"
+    },
+    {
+      "type": "url",
+      "id": "topbar_button_link",
+      "label": "Top Bar Button Link"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner Background Image"
+    },
+    {
+      "type": "text",
+      "id": "hero_heading",
+      "label": "Hero Heading",
+      "default": "The Gift Guide"
+    },
+    {
+      "type": "textarea",
+      "id": "hero_description",
+      "label": "Hero Description",
+      "default": "Discover Joy: Your Ultimate Holiday Gift Destination."
+    },
+    {
+      "type": "text",
+      "id": "hero_button_text",
+      "label": "Hero Button Text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "hero_button_link",
+      "label": "Hero Button Link"
+    },
+    {
+      "type": "text",
+      "id": "info_text",
+      "label": "Info Bar Text",
+      "default": "SUSTAINABLE, ETHICALLY MADE ACTIVEWEAR"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gift Banner"
+    }
+  ]
+}
+{% endschema %}
