@@ -1,54 +1,47 @@
 {% comment %}
 =========================================================
-SECTION: Product Grid with Quick Shop
+SECTION: Product Grid with Quick Shop Popup
 PURPOSE:
-- Custom product grid
-- Lookbook-style quick shop (+ icon)
-- Popup modal with product details
+- Display selectable products in a grid
+- Show Quick Shop modal on clicking hotspot icon
+- Fully functional Add to Cart (routes object)
 - Vanilla JS only
-- Uses Shopify routes object
-- Fully responsive
+- Responsive (desktop + mobile)
 =========================================================
 {% endcomment %}
 
-<section id="quickshop-{{ section.id }}" class="quickshop-section">
+<section id="product-grid-{{ section.id }}" class="product-grid-section">
 
   <!-- ================= PRODUCT GRID ================= -->
   <div class="product-grid">
-    {% for product in section.settings.collection.products %}
-      {% assign first_variant = product.variants.first %}
 
-      <div class="product-card">
+    {% for block in section.blocks %}
+      {% assign product = all_products[block.settings.product] %}
+      {% if product %}
 
-        <!-- Product Image -->
-        <div class="product-image-wrapper">
+        <div class="product-card">
 
+          <!-- Product Image -->
           <img
             src="{{ product.featured_image | image_url: width: 600 }}"
             width="600"
             height="800"
-            alt="{{ product.title | escape }}"
+            alt="{{ product.title }}"
             loading="lazy">
 
           <!-- Quick Shop Trigger -->
           <button
             class="quickshop-trigger"
             aria-label="Quick shop {{ product.title }}"
-            data-product-title="{{ product.title | escape }}"
-            data-product-image="{{ product.featured_image | image_url: width: 600 }}"
-            data-variant-id="{{ first_variant.id }}"
-            data-price="{{ first_variant.price | money }}"
-          >
+            data-product-handle="{{ product.handle }}">
             +
           </button>
+
         </div>
 
-        <!-- Product Meta -->
-        <h3 class="product-title">{{ product.title }}</h3>
-        <p class="product-price">{{ first_variant.price | money }}</p>
-
-      </div>
+      {% endif %}
     {% endfor %}
+
   </div>
 
   <!-- ================= QUICK SHOP MODAL ================= -->
@@ -56,35 +49,36 @@ PURPOSE:
 
     <div class="quickshop-overlay"></div>
 
-    <div class="quickshop-content" role="dialog" aria-modal="true">
+    <div class="quickshop-content">
 
       <!-- Close Button -->
-      <button class="quickshop-close" aria-label="Close quick shop">
-        ×
-      </button>
+      <button class="quickshop-close" aria-label="Close popup">×</button>
 
-      <!-- Modal Image -->
+      <!-- Product Media -->
       <div class="quickshop-image">
         <img
           id="qs-image"
-          src="{{ 'placeholder.png' | asset_url }}"
+          src=""
           width="600"
           height="800"
-          alt="Selected product image">
+          alt="">
       </div>
 
-      <!-- Modal Info -->
+      <!-- Product Info -->
       <div class="quickshop-info">
-        <h2 id="qs-title">Product title</h2>
-        <p id="qs-price">$0.00</p>
+
+        <h2 id="qs-title"></h2>
+        <p id="qs-price"></p>
+        <p id="qs-description"></p>
+
+        <!-- Variant Select -->
+        <select id="qs-variant-select"></select>
 
         <!-- Add to Cart -->
-        <form method="post" action="{{ routes.cart_add_url }}">
-          <input type="hidden" name="id" id="qs-variant-id">
-          <button type="submit" class="btn-add-to-cart">
-            Add to Cart
-          </button>
-        </form>
+        <button id="qs-add-to-cart">
+          ADD TO CART
+        </button>
+
       </div>
 
     </div>
@@ -94,24 +88,22 @@ PURPOSE:
 
 <!-- ================= STYLES ================= -->
 <style>
-/* ---------- GRID ---------- */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  gap: 24px;
 }
 
-.product-image-wrapper {
+.product-card {
   position: relative;
 }
 
-.product-image-wrapper img {
+.product-card img {
   width: 100%;
   height: auto;
   display: block;
 }
 
-/* ---------- QUICK SHOP BUTTON ---------- */
 .quickshop-trigger {
   position: absolute;
   bottom: 16px;
@@ -119,10 +111,10 @@ PURPOSE:
   width: 42px;
   height: 42px;
   border-radius: 50%;
+  border: none;
   background: #000;
   color: #fff;
-  font-size: 22px;
-  border: none;
+  font-size: 24px;
   cursor: pointer;
 }
 
@@ -131,7 +123,7 @@ PURPOSE:
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 9999;
 }
 
 .quickshop-modal.active {
@@ -147,22 +139,21 @@ PURPOSE:
 .quickshop-content {
   position: relative;
   max-width: 900px;
-  margin: 60px auto;
+  margin: 5vh auto;
   background: #fff;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  padding: 32px;
+  padding: 24px;
+  z-index: 1;
 }
 
-/* ---------- CLOSE ---------- */
 .quickshop-close {
   position: absolute;
   top: 12px;
-  right: 16px;
-  font-size: 28px;
-  background: none;
+  right: 12px;
+  font-size: 24px;
   border: none;
+  background: none;
   cursor: pointer;
 }
 
@@ -174,58 +165,109 @@ PURPOSE:
 
   .quickshop-content {
     grid-template-columns: 1fr;
-    margin: 20px;
   }
 }
 </style>
 
 <!-- ================= VANILLA JS ================= -->
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
 
-  const section = document.getElementById('quickshop-{{ section.id }}');
-  const modal = section.querySelector('.quickshop-modal');
-  const image = section.querySelector('#qs-image');
-  const title = section.querySelector('#qs-title');
-  const price = section.querySelector('#qs-price');
-  const variantInput = section.querySelector('#qs-variant-id');
+  const modal = document.querySelector('#product-grid-{{ section.id }} .quickshop-modal');
+  const image = modal.querySelector('#qs-image');
+  const title = modal.querySelector('#qs-title');
+  const price = modal.querySelector('#qs-price');
+  const description = modal.querySelector('#qs-description');
+  const variantSelect = modal.querySelector('#qs-variant-select');
+  const addToCartBtn = modal.querySelector('#qs-add-to-cart');
 
-  /* ---------- OPEN MODAL ---------- */
-  section.querySelectorAll('.quickshop-trigger').forEach(button => {
-    button.addEventListener('click', () => {
+  let currentVariantId = null;
 
-      image.src = button.dataset.productImage;
-      title.textContent = button.dataset.productTitle;
-      price.textContent = button.dataset.price;
-      variantInput.value = button.dataset.variantId;
+  /* ---------- OPEN QUICK SHOP ---------- */
+  document.querySelectorAll('#product-grid-{{ section.id }} .quickshop-trigger')
+    .forEach(button => {
 
-      modal.classList.add('active');
-      modal.setAttribute('aria-hidden', 'false');
+      button.addEventListener('click', async () => {
+
+        const handle = button.dataset.productHandle;
+
+        /* Fetch product JSON */
+        const response = await fetch(`/products/${handle}.js`);
+        const product = await response.json();
+
+        /* Populate modal content */
+        image.src = product.images[0];
+        image.alt = product.title;
+        title.textContent = product.title;
+        description.innerHTML = product.description;
+        price.textContent = Shopify.formatMoney(product.price, "{{ shop.money_format }}");
+
+        /* Variants */
+        variantSelect.innerHTML = '';
+        product.variants.forEach(variant => {
+          const option = document.createElement('option');
+          option.value = variant.id;
+          option.textContent = variant.title;
+          variantSelect.appendChild(option);
+        });
+
+        currentVariantId = product.variants[0].id;
+
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+      });
+
     });
+
+  /* ---------- VARIANT CHANGE ---------- */
+  variantSelect.addEventListener('change', e => {
+    currentVariantId = e.target.value;
+  });
+
+  /* ---------- ADD TO CART ---------- */
+  addToCartBtn.addEventListener('click', async () => {
+
+    await fetch(routes.cart_add_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: currentVariantId,
+        quantity: 1
+      })
+    });
+
+    modal.classList.remove('active');
   });
 
   /* ---------- CLOSE MODAL ---------- */
-  section.querySelector('.quickshop-close').addEventListener('click', closeModal);
-  section.querySelector('.quickshop-overlay').addEventListener('click', closeModal);
-
-  function closeModal() {
+  modal.querySelector('.quickshop-close').addEventListener('click', () => {
     modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-  }
+  });
+
+  modal.querySelector('.quickshop-overlay').addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
 
 });
 </script>
 
 {% schema %}
 {
-  "name": "Product Grid – Quick Shop",
-  "settings": [
+  "name": "Product Grid Quick Shop",
+  "blocks": [
     {
-      "type": "collection",
-      "id": "collection",
-      "label": "Product Collection"
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Select Product"
+        }
+      ]
     }
   ],
+  "max_blocks": 6,
   "presets": [
     {
       "name": "Product Grid with Quick Shop"
