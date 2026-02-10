@@ -1,17 +1,14 @@
 {% comment %}
 =========================================================
-SECTION: Gift Banner (Production Ready)
-AUTHOR: Custom Shopify Section
+SECTION: Gift Banner (Figma Accurate)
+AUTHOR: Production Shopify Implementation
 FEATURES:
-- Editable logo, headings, buttons
-- Top full-width image
-- Right-side image
-- Grid layout like Figma
-- Object-fit cover for perfect spacing
-- Mobile hide toggles for images & text
-- Responsive mobile layout
-- Animated buttons
-- Hamburger menu
+- Editable logo, headings, text, buttons
+- Editable images
+- Object-fit cover images (Figma style)
+- Mobile hide controls per image/text
+- Responsive layout
+- Valid Shopify schema (no errors)
 =========================================================
 {% endcomment %}
 
@@ -22,29 +19,26 @@ FEATURES:
     <div class="topbar-inner">
 
       <!-- Mobile Hamburger -->
-      <button class="hamburger" aria-label="Menu">☰</button>
+      <button class="hamburger" aria-label="Open menu">☰</button>
 
-      <!-- Logo Text -->
+      <!-- Logo -->
       <div class="topbar-logo">
         {{ section.settings.logo_text }}
       </div>
 
-      <!-- Desktop Heading -->
-      {% if section.settings.show_topbar_heading %}
+      <!-- Center Text -->
       <div class="topbar-heading desktop-only">
         {{ section.settings.topbar_heading }}
       </div>
-      {% endif %}
 
-      <!-- Desktop Button -->
+      <!-- Button -->
       <a href="{{ section.settings.topbar_button_link }}" class="btn choose-gift desktop-only">
         {{ section.settings.topbar_button_text }}
         <span class="arrow">→</span>
       </a>
-
     </div>
 
-    <!-- Mobile Menu -->
+    <!-- Mobile CTA -->
     <div class="mobile-menu">
       <a href="{{ section.settings.topbar_button_link }}" class="btn choose-gift mobile-only">
         {{ section.settings.topbar_button_text }}
@@ -54,21 +48,24 @@ FEATURES:
   </header>
 
   <!-- ================= BANNER GRID ================= -->
-  <div class="gift-banner-grid">
+  <div class="gift-grid">
 
-    <!-- TOP FULL IMAGE -->
+    <!-- TOP IMAGE -->
     {% if section.settings.show_top_image %}
-    <div class="banner-image-full {% if section.settings.hide_top_image_mobile %}hide-mobile{% endif %}">
-      <img
-        src="{{ section.settings.banner_top_image | image_url: width: 2500 }}"
-        alt="Gift Banner Top"
-        loading="lazy">
+    <div class="gift-img-top">
+      {% if section.settings.banner_top_image != blank %}
+        <img 
+          src="{{ section.settings.banner_top_image | image_url: width: 2000 }}"
+          alt="{{ section.settings.banner_top_image.alt | escape }}"
+          loading="lazy"
+        >
+      {% endif %}
     </div>
     {% endif %}
 
     <!-- TEXT BLOCK -->
     {% if section.settings.show_text_block %}
-    <div class="banner-text {% if section.settings.hide_text_mobile %}hide-mobile{% endif %}">
+    <div class="gift-text">
       <h1>{{ section.settings.hero_heading }}</h1>
       <p>{{ section.settings.hero_description }}</p>
 
@@ -79,20 +76,23 @@ FEATURES:
     </div>
     {% endif %}
 
-    <!-- SIDE IMAGE -->
+    <!-- RIGHT IMAGE -->
     {% if section.settings.show_side_image %}
-    <div class="banner-image-right {% if section.settings.hide_side_image_mobile %}hide-mobile{% endif %}">
-      <img
-        src="{{ section.settings.banner_side_image | image_url: width: 1600 }}"
-        alt="Gift Banner Side"
-        loading="lazy">
+    <div class="gift-img-right">
+      {% if section.settings.banner_side_image != blank %}
+        <img 
+          src="{{ section.settings.banner_side_image | image_url: width: 1600 }}"
+          alt="{{ section.settings.banner_side_image.alt | escape }}"
+          loading="lazy"
+        >
+      {% endif %}
     </div>
     {% endif %}
 
   </div>
 
   <!-- ================= INFO BAR ================= -->
-  {% if section.settings.show_info_bar %}
+  {% if section.settings.info_text != blank %}
   <div class="gift-infobar">
     {{ section.settings.info_text }}
   </div>
@@ -100,208 +100,177 @@ FEATURES:
 
 </section>
 
-
 <!-- ================= STYLES ================= -->
 <style>
 #gift-banner-{{ section.id }} {
-  font-family: 'Jost', sans-serif;
+  font-family: Jost, sans-serif;
+  background:#fff;
 }
 
-/* ---------- TOP BAR ---------- */
+/* ===== TOP BAR ===== */
 .gift-topbar {
-  background: #f7f7f7;
-  box-shadow: 0 2px 4px rgba(0,0,0,.15);
+  background:#fff;
+  border-bottom:1px solid #eee;
 }
-
 .topbar-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 24px;
-  position: relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 40px;
 }
-
 .topbar-logo {
-  font-size: 20px;
-  font-weight: 600;
+  font-size:20px;
+  font-weight:600;
 }
-
 .topbar-heading {
-  font-size: 16px;
-  font-weight: 400;
+  font-size:14px;
 }
-
 .hamburger {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
+  display:none;
+  background:none;
+  border:none;
+  font-size:22px;
 }
-
 .mobile-menu {
-  display: none;
-  padding: 20px;
-  background: #f2f2f2;
+  display:none;
+  padding:12px;
+  text-align:center;
 }
 
-/* ---------- GRID LAYOUT ---------- */
-.gift-banner-grid {
-  display: grid;
+/* ===== GRID ===== */
+.gift-grid {
+  display:grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 1fr;
 }
 
-/* Full width top image */
-.banner-image-full {
-  grid-column: 1 / -1;
-  height: 420px;
+/* Top image full width */
+.gift-img-top {
+  grid-column:1 / -1;
+  height:400px;
 }
-.banner-image-full img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* IMPORTANT */
-  display: block;
-}
-
-/* Text block */
-.banner-text {
-  padding: 80px 70px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.banner-text h1 {
-  font-size: 56px;
-  margin-bottom: 18px;
-}
-.banner-text p {
-  font-size: 18px;
-  margin-bottom: 28px;
-  max-width: 460px;
+.gift-img-top img {
+  width:100%;
+  height:100%;
+  object-fit:cover; /* Figma behavior */
 }
 
 /* Right image */
-.banner-image-right {
-  height: 100%;
+.gift-img-right {
+  height:500px;
 }
-.banner-image-right img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* IMPORTANT */
-  display: block;
-}
-
-/* ---------- INFO BAR ---------- */
-.gift-infobar {
-  background: #f5f5f5;
-  text-align: center;
-  padding: 14px;
-  font-size: 14px;
-  letter-spacing: 1px;
+.gift-img-right img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
-/* ---------- BUTTONS ---------- */
+/* Text block */
+.gift-text {
+  padding:80px 60px;
+}
+.gift-text h1 {
+  font-size:64px;
+  font-weight:700;
+  margin-bottom:16px;
+}
+.gift-text p {
+  font-size:18px;
+  max-width:520px;
+  margin-bottom:32px;
+}
+
+/* ===== BUTTONS ===== */
 .btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 26px;
-  border: 2px solid #000;
-  text-transform: uppercase;
-  font-weight: 500;
-  overflow: hidden;
-  transition: color .3s ease;
-  isolation: isolate;
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 28px;
+  border:2px solid #000;
+  text-transform:uppercase;
+  font-size:14px;
+  position:relative;
+  overflow:hidden;
+  background:#fff;
+  color:#000;
 }
-
 .btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  transition: transform .3s ease;
-  z-index: -1;
+  content:'';
+  position:absolute;
+  inset:0;
+  background:#000;
+  transform:translateX(-100%);
+  transition:.3s ease;
+  z-index:-1;
+}
+.btn:hover::before {
+  transform:translateX(0);
+}
+.btn:hover {
+  color:#fff;
 }
 
+/* Yellow button */
 .choose-gift {
-  background: #fff544;
-  color: #000;
+  background:#fff544;
 }
-.choose-gift::before { background: #000; }
-.choose-gift:hover::before { transform: translateX(0); }
-.choose-gift:hover { color: #fff; }
 
+/* Shop Now button EXACT Figma width (NOT FULL WIDTH) */
 .shop-now {
-  background: #000;
-  color: #fff;
+  background:#000;
+  color:#fff;
+  max-width:240px; /* FIX: prevents full width */
 }
-.shop-now::before { background: #fff544; }
-.shop-now:hover::before { transform: translateX(0); }
-.shop-now:hover { color: #000; }
-
-/* ---------- UTILITIES ---------- */
-.desktop-only { display: inline-flex; }
-.mobile-only { display: none; }
-.hide-mobile {}
-
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 900px) {
-  .gift-banner-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .banner-image-full {
-    height: 300px;
-  }
-
-  .banner-text {
-    padding: 40px 22px;
-    text-align: center;
-  }
-
-  .banner-text h1 {
-    font-size: 36px;
-  }
-
-  .banner-text p {
-    max-width: 100%;
-  }
-
-  .banner-image-right {
-    height: 360px;
-  }
-
-  .hamburger { display: block; }
-  .desktop-only { display: none; }
-  .mobile-only { display: inline-flex; }
-
-  .topbar-logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .hide-mobile {
-    display: none !important;
-  }
+.shop-now::before {
+  background:#fff544;
+}
+.shop-now:hover {
+  color:#000;
 }
 
-.mobile-menu.active {
-  display: block;
+/* ===== INFO BAR ===== */
+.gift-infobar {
+  text-align:center;
+  padding:10px;
+  font-size:12px;
+  background:#f6f6f6;
+  letter-spacing:1px;
+}
+
+/* ===== RESPONSIVE ===== */
+.desktop-only {display:flex;}
+.mobile-only {display:none;}
+
+@media (max-width: 768px) {
+
+  .gift-grid {
+    grid-template-columns:1fr;
+  }
+
+  .gift-text {
+    padding:40px 20px;
+    text-align:center;
+  }
+
+  .gift-text h1 {
+    font-size:40px;
+  }
+
+  .gift-img-right {
+    height:300px;
+  }
+
+  .hamburger {display:block;}
+  .desktop-only {display:none;}
+  .mobile-only {display:inline-flex;}
+  .mobile-menu.active {display:block;}
 }
 </style>
 
-
-<!-- ================= JAVASCRIPT ================= -->
+<!-- ================= JS ================= -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const section = document.querySelector('#gift-banner-{{ section.id }}');
-  if (!section) return;
-
-  const hamburger = section.querySelector('.hamburger');
-  const menu = section.querySelector('.mobile-menu');
+document.addEventListener('DOMContentLoaded', function () {
+  const hamburger = document.querySelector('#gift-banner-{{ section.id }} .hamburger');
+  const menu = document.querySelector('#gift-banner-{{ section.id }} .mobile-menu');
 
   if (hamburger) {
     hamburger.addEventListener('click', () => {
@@ -311,40 +280,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-
 {% schema %}
 {
-  "name": "Gift Banner (Advanced)",
+  "name": "Gift Banner (Figma Exact)",
   "settings": [
     { "type": "text", "id": "logo_text", "label": "Logo Text", "default": "TISSO VISON" },
-
-    { "type": "checkbox", "id": "show_topbar_heading", "label": "Show Top Bar Heading", "default": true },
     { "type": "text", "id": "topbar_heading", "label": "Top Bar Heading", "default": "Find the ideal gift for your loved ones." },
-
     { "type": "text", "id": "topbar_button_text", "label": "Top Bar Button Text", "default": "Choose Gift" },
     { "type": "url", "id": "topbar_button_link", "label": "Top Bar Button Link" },
 
     { "type": "checkbox", "id": "show_top_image", "label": "Show Top Image", "default": true },
-    { "type": "checkbox", "id": "hide_top_image_mobile", "label": "Hide Top Image on Mobile", "default": false },
-    { "type": "image_picker", "id": "banner_top_image", "label": "Top Banner Image" },
+    { "type": "image_picker", "id": "banner_top_image", "label": "Top Image" },
 
     { "type": "checkbox", "id": "show_text_block", "label": "Show Text Block", "default": true },
-    { "type": "checkbox", "id": "hide_text_mobile", "label": "Hide Text on Mobile", "default": false },
+    { "type": "text", "id": "hero_heading", "label": "Heading", "default": "The Gift Guide" },
+    { "type": "textarea", "id": "hero_description", "label": "Description", "default": "Discover Joy: Your Ultimate Holiday Gift Destination." },
+    { "type": "text", "id": "hero_button_text", "label": "Shop Now Button Text", "default": "Shop Now" },
+    { "type": "url", "id": "hero_button_link", "label": "Shop Now Link" },
 
-    { "type": "text", "id": "hero_heading", "label": "Hero Heading", "default": "The Gift Guide" },
-    { "type": "textarea", "id": "hero_description", "label": "Hero Description", "default": "Discover Joy: Your Ultimate Holiday Gift Destination." },
-    { "type": "text", "id": "hero_button_text", "label": "Hero Button Text", "default": "Shop Now" },
-    { "type": "url", "id": "hero_button_link", "label": "Hero Button Link" },
+    { "type": "checkbox", "id": "show_side_image", "label": "Show Right Image", "default": true },
+    { "type": "image_picker", "id": "banner_side_image", "label": "Right Image" },
 
-    { "type": "checkbox", "id": "show_side_image", "label": "Show Side Image", "default": true },
-    { "type": "checkbox", "id": "hide_side_image_mobile", "label": "Hide Side Image on Mobile", "default": false },
-    { "type": "image_picker", "id": "banner_side_image", "label": "Side Banner Image" },
-
-    { "type": "checkbox", "id": "show_info_bar", "label": "Show Info Bar", "default": true },
-    { "type": "text", "id": "info_text", "label": "Info Bar Text", "default": "SUSTAINABLE, ETHICALLY MADE ACTIVEWEAR" }
+    { "type": "text", "id": "info_text", "label": "Info Bar Text", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" }
   ],
   "presets": [
-    { "name": "Gift Banner (Advanced)" }
+    {
+      "name": "Gift Banner (Figma Exact)"
+    }
   ]
 }
 {% endschema %}
