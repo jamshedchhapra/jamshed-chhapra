@@ -52,17 +52,18 @@ FEATURES:
 
             <!-- Lookbook Trigger Button -->
             <button
-              type="button"
-              class="lookbook-trigger"
-              aria-label="Quick shop {{ product.title }}"
-              data-product-id="{{ product.id }}"
-              data-title="{{ product.title | escape }}"
-              data-image="{{ image | image_url: width: 800 }}"
-              data-price="{{ product.price | money }}"
-              data-variant="{{ product.selected_or_first_available_variant.id }}"
+            type="button"
+            class="lookbook-trigger"
+            aria-label="Quick shop {{ product.title }}"
+            data-title="{{ product.title | escape }}"
+            data-image="{{ image | image_url: width: 800 }}"
+            data-description="{{ product.description | strip_html | escape }}"
+            data-variants='{{ product.variants | json }}'
+            data-options='{{ product.options | json }}'
             >
-              +
+            +
             </button>
+
 
           </div>
         {% endif %}
