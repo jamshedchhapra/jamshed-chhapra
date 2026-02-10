@@ -316,7 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
       let selectedSize = null;
 
       if (options.includes('Color')) {
-        [...new Set(variants.map(v => v.option1))].forEach(color => {
+        if (colorIndex !== -1) {
+        [...new Set(variants.map(v => v.options[colorIndex]))].forEach(color => {
           const colorBtn = document.createElement('button');
           colorBtn.type = 'button';
           colorBtn.className = 'qs-color-btn';
@@ -334,7 +335,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (options.includes('Size')) {
-        [...new Set(variants.map(v => v.option2))].forEach(size => {
+        if (sizeIndex !== -1) {
+        [...new Set(variants.map(v => v.options[sizeIndex]))].forEach(size => {
           const opt = document.createElement('option');
           opt.value = size;
           opt.textContent = size;
