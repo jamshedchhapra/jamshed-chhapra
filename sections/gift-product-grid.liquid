@@ -244,40 +244,73 @@ FEATURES:
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-  const section = document.querySelector('#lookbook-quickshop-{{ section.id }}');
-  const modal = section.querySelector('.quickshop-modal');
-  const overlay = section.querySelector('.quickshop-overlay');
-  const closeBtn = section.querySelector('.quickshop-close');
+  const modal = document.querySelector('.quickshop-modal');
+  const image = document.getElementById('qs-image');
+  const title = document.getElementById('qs-title');
+  const price = document.getElementById('qs-price');
+  const description = document.getElementById('qs-description');
+  const sizeSelect = document.getElementById('qs-size');
+  const colorsWrap = document.getElementById('qs-colors');
+  const form = document.getElementById('qs-form');
 
-  const img = section.querySelector('#qs-image');
-  const title = section.querySelector('#qs-title');
-  const price = section.querySelector('#qs-price');
-  const variantInput = section.querySelector('#qs-variant-id');
+  /* ---------- OPEN QUICK SHOP ---------- */
+  document.querySelectorAll('[data-product-handle]').forEach(btn => {
+    btn.addEventListener('click', async () => {
 
-  /* ---------- OPEN MODAL ---------- */
-  section.querySelectorAll('.lookbook-trigger').forEach(btn => {
-    btn.addEventListener('click', () => {
-      img.src = btn.dataset.image;
-      img.alt = btn.dataset.title;
-      title.textContent = btn.dataset.title;
-      price.textContent = btn.dataset.price;
-      variantInput.value = btn.dataset.variant;
+      const handle = btn.dataset.productHandle;
+      const res = await fetch(`/products/${handle}.js`);
+      const product = await res.json();
 
-      modal.classList.add('active');
-      modal.setAttribute('aria-hidden', 'false');
+      /* Image */
+      image.src = product.images[0];
+      image.alt = product.title;
+      image.hidden = false;
+
+      /* Text */
+      title.textContent = product.title;
+      price.textContent = Shopify.formatMoney(product.price);
+
+      description.innerHTML = product.description;
+
+      /* Reset */
+      sizeSelect.innerHTML = '';
+      colorsWrap.innerHTML = '';
+
+      /* Variants */
+      product.variants.forEach(variant => {
+        const option = document.createElement('option');
+        option.value = variant.id;
+        option.textContent = variant.title;
+        sizeSelect.appendChild(option);
+      });
+
+      /* Add to cart */
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        await fetch('{{ routes.cart_add_url }}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: sizeSelect.value,
+            quantity: 1
+          })
+        });
+
+        window.location.href = '/cart';
+      };
+
+      modal.hidden = false;
     });
   });
 
-  /* ---------- CLOSE MODAL ---------- */
-  [overlay, closeBtn].forEach(el => {
-    el.addEventListener('click', () => {
-      modal.classList.remove('active');
-      modal.setAttribute('aria-hidden', 'true');
-    });
-  });
+  /* ---------- CLOSE ---------- */
+  document.querySelector('.quickshop-close').onclick = () => modal.hidden = true;
+  document.querySelector('.quickshop-overlay').onclick = () => modal.hidden = true;
 
 });
 </script>
+
 
 {% schema %}
 {
