@@ -7,10 +7,12 @@ FEATURES:
 - Section heading
 - Product image grid
 - Lookbook-style "+" trigger
-- Working Quick Shop modal
-- Proper Add to Cart using routes object
+- Fully working Quick Shop modal
+- Product image, title, description
+- Color & Size variants
+- Variant-aware Add to Cart
+- Vanilla JS only
 - Fully responsive
-- No empty tags
 - Theme Editor safe
 =========================================================
 {% endcomment %}
@@ -52,18 +54,17 @@ FEATURES:
 
             <!-- Lookbook Trigger Button -->
             <button
-            type="button"
-            class="lookbook-trigger"
-            aria-label="Quick shop {{ product.title }}"
-            data-title="{{ product.title | escape }}"
-            data-image="{{ image | image_url: width: 800 }}"
-            data-description="{{ product.description | strip_html | escape }}"
-            data-variants='{{ product.variants | json }}'
-            data-options='{{ product.options | json }}'
+              type="button"
+              class="lookbook-trigger"
+              aria-label="Quick shop {{ product.title }}"
+              data-title="{{ product.title | escape }}"
+              data-image="{{ image | image_url: width: 800 }}"
+              data-description="{{ product.description | strip_html | escape }}"
+              data-variants='{{ product.variants | json }}'
+              data-options='{{ product.options | json }}'
             >
-            +
+              +
             </button>
-
 
           </div>
         {% endif %}
@@ -92,7 +93,7 @@ FEATURES:
       <div class="quickshop-image">
         <img
           id="qs-image"
-          src="{{ 'transparent.png' | asset_url }}"
+          src=""
           width="600"
           height="800"
           alt=""
@@ -110,10 +111,11 @@ FEATURES:
 
         <!-- SIZE OPTIONS -->
         <div class="qs-options">
-        <select id="qs-sizes" aria-label="Select size">
+          <select id="qs-sizes" aria-label="Select size">
             <option value="">Choose your size</option>
-        </select>
+          </select>
         </div>
+
         <!-- Add to Cart Form -->
         <form
           method="post"
@@ -134,46 +136,39 @@ FEATURES:
 
 <!-- ================= STYLES ================= -->
 <style>
-/* ---------- SECTION WRAPPER ---------- */
 .lookbook-section {
   background: #ffffff;
   margin-top: 90px;
   padding-bottom: 90px;
 }
 
-/* ---------- CONTAINER ---------- */
 .lookbook-container {
   max-width: 1337px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
-/* ---------- HEADING ---------- */
 .lookbook-heading {
   font-family: 'Lustria', serif;
   font-size: 36px;
   margin-bottom: 30px;
 }
 
-/* ---------- GRID ---------- */
 .lookbook-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
-/* ---------- ITEM ---------- */
 .lookbook-item {
   position: relative;
 }
 
 .lookbook-item img {
   width: 100%;
-  height: auto;
   display: block;
 }
 
-/* ---------- LOOKBOOK BUTTON ---------- */
 .lookbook-trigger {
   position: absolute;
   width: 22px;
@@ -182,14 +177,12 @@ FEATURES:
   background: rgba(248, 248, 248, 0.9);
   border: 1.5px solid #000;
   font-size: 16px;
-  line-height: 1;
   cursor: pointer;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-/* ---------- MODAL ---------- */
 .quickshop-modal {
   position: fixed;
   inset: 0;
@@ -218,7 +211,6 @@ FEATURES:
   gap: 30px;
 }
 
-/* ---------- CLOSE ---------- */
 .quickshop-close {
   position: absolute;
   top: 10px;
@@ -229,24 +221,13 @@ FEATURES:
   cursor: pointer;
 }
 
-/* ---------- INFO ---------- */
 .quickshop-atc {
   background: #000;
   color: #fff;
   padding: 14px;
   border: none;
   cursor: pointer;
-}
-
-/* ---------- MOBILE ---------- */
-@media (max-width: 768px) {
-  .lookbook-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .quickshop-content {
-    grid-template-columns: 1fr;
-  }
+  width: 100%;
 }
 
 .qs-description {
@@ -258,7 +239,6 @@ FEATURES:
   margin-bottom: 16px;
 }
 
-/* Color buttons */
 .qs-color-btn {
   border: 1px solid #000;
   padding: 10px 14px;
@@ -272,13 +252,21 @@ FEATURES:
   color: #fff;
 }
 
-/* Size select */
 #qs-sizes {
   width: 100%;
   padding: 12px;
   border: 1px solid #000;
 }
 
+@media (max-width: 768px) {
+  .lookbook-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickshop-content {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 
 <!-- ================= JAVASCRIPT ================= -->
@@ -286,6 +274,8 @@ FEATURES:
 document.addEventListener('DOMContentLoaded', () => {
 
   const section = document.querySelector('#lookbook-quickshop-{{ section.id }}');
+  if (!section) return;
+
   const modal = section.querySelector('.quickshop-modal');
   const overlay = section.querySelector('.quickshop-overlay');
   const closeBtn = section.querySelector('.quickshop-close');
@@ -293,82 +283,85 @@ document.addEventListener('DOMContentLoaded', () => {
   const img = section.querySelector('#qs-image');
   const title = section.querySelector('#qs-title');
   const price = section.querySelector('#qs-price');
+  const description = section.querySelector('#qs-description');
   const variantInput = section.querySelector('#qs-variant-id');
+  const colorContainer = section.querySelector('#qs-colors');
+  const sizeSelect = section.querySelector('#qs-sizes');
 
-  /* ---------- OPEN MODAL ---------- */
+  function formatMoney(cents) {
+    return (cents / 100).toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    });
+  }
+
   section.querySelectorAll('.lookbook-trigger').forEach(btn => {
-  btn.addEventListener('click', () => {
+    btn.addEventListener('click', () => {
 
-    const variants = JSON.parse(btn.dataset.variants);
-    const options = JSON.parse(btn.dataset.options);
+      const variants = JSON.parse(btn.dataset.variants);
+      const options = JSON.parse(btn.dataset.options);
 
-    img.src = btn.dataset.image;
-    title.textContent = btn.dataset.title;
-    price.textContent = Shopify.formatMoney(variants[0].price);
-    document.getElementById('qs-description').textContent = btn.dataset.description;
+      img.src = btn.dataset.image;
+      title.textContent = btn.dataset.title;
+      description.textContent = btn.dataset.description;
+      price.textContent = formatMoney(variants[0].price);
+      variantInput.value = variants[0].id;
 
-    const colorContainer = document.getElementById('qs-colors');
-    const sizeSelect = document.getElementById('qs-sizes');
+      colorContainer.innerHTML = '';
+      sizeSelect.innerHTML = '<option value="">Choose your size</option>';
 
-    colorContainer.innerHTML = '';
-    sizeSelect.innerHTML = '<option value="">Choose your size</option>';
+      let selectedColor = null;
+      let selectedSize = null;
 
-    let selectedColor = null;
-    let selectedSize = null;
+      if (options.includes('Color')) {
+        [...new Set(variants.map(v => v.option1))].forEach(color => {
+          const colorBtn = document.createElement('button');
+          colorBtn.type = 'button';
+          colorBtn.className = 'qs-color-btn';
+          colorBtn.textContent = color;
 
-    /* ---------- COLORS ---------- */
-    if (options.includes('Color')) {
-      [...new Set(variants.map(v => v.option1))].forEach(color => {
-        const btnColor = document.createElement('button');
-        btnColor.className = 'qs-color-btn';
-        btnColor.textContent = color;
+          colorBtn.addEventListener('click', () => {
+            section.querySelectorAll('.qs-color-btn').forEach(b => b.classList.remove('active'));
+            colorBtn.classList.add('active');
+            selectedColor = color;
+            updateVariant();
+          });
 
-        btnColor.addEventListener('click', () => {
-          document.querySelectorAll('.qs-color-btn').forEach(b => b.classList.remove('active'));
-          btnColor.classList.add('active');
-          selectedColor = color;
-          updateVariant();
+          colorContainer.appendChild(colorBtn);
+        });
+      }
+
+      if (options.includes('Size')) {
+        [...new Set(variants.map(v => v.option2))].forEach(size => {
+          const opt = document.createElement('option');
+          opt.value = size;
+          opt.textContent = size;
+          sizeSelect.appendChild(opt);
         });
 
-        colorContainer.appendChild(btnColor);
-      });
-    }
-
-    /* ---------- SIZES ---------- */
-    if (options.includes('Size')) {
-      [...new Set(variants.map(v => v.option2))].forEach(size => {
-        const opt = document.createElement('option');
-        opt.value = size;
-        opt.textContent = size;
-        sizeSelect.appendChild(opt);
-      });
-
-      sizeSelect.addEventListener('change', e => {
-        selectedSize = e.target.value;
-        updateVariant();
-      });
-    }
-
-    /* ---------- VARIANT MATCH ---------- */
-    function updateVariant() {
-      const match = variants.find(v =>
-        (!selectedColor || v.option1 === selectedColor) &&
-        (!selectedSize || v.option2 === selectedSize)
-      );
-
-      if (match) {
-        variantInput.value = match.id;
-        price.textContent = Shopify.formatMoney(match.price);
+        sizeSelect.onchange = e => {
+          selectedSize = e.target.value;
+          updateVariant();
+        };
       }
-    }
 
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
+      function updateVariant() {
+        const match = variants.find(v =>
+          (!selectedColor || v.option1 === selectedColor) &&
+          (!selectedSize || v.option2 === selectedSize)
+        );
+
+        if (match) {
+          variantInput.value = match.id;
+          price.textContent = formatMoney(match.price);
+        }
+      }
+
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    });
   });
-});
 
-
-  /* ---------- CLOSE MODAL ---------- */
   [overlay, closeBtn].forEach(el => {
     el.addEventListener('click', () => {
       modal.classList.remove('active');
