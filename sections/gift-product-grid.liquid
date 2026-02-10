@@ -315,24 +315,26 @@ document.addEventListener('DOMContentLoaded', () => {
       let selectedColor = null;
       let selectedSize = null;
 
-      if (options.includes('Color')) {
-        if (colorIndex !== -1) {
-        [...new Set(variants.map(v => v.options[colorIndex]))].forEach(color => {
-          const colorBtn = document.createElement('button');
-          colorBtn.type = 'button';
-          colorBtn.className = 'qs-color-btn';
-          colorBtn.textContent = color;
+      if (colorIndex !== -1) {
+  [...new Set(variants.map(v => v.options[colorIndex]))].forEach(color => {
+    const colorBtn = document.createElement('button');
+    colorBtn.type = 'button';
+    colorBtn.className = 'qs-color-btn';
+    colorBtn.textContent = color;
 
-          colorBtn.addEventListener('click', () => {
-            section.querySelectorAll('.qs-color-btn').forEach(b => b.classList.remove('active'));
-            colorBtn.classList.add('active');
-            selectedColor = color;
-            updateVariant();
-          });
+    colorBtn.addEventListener('click', () => {
+      section.querySelectorAll('.qs-color-btn').forEach(b =>
+        b.classList.remove('active')
+      );
+      colorBtn.classList.add('active');
+      selectedColor = color;
+      updateVariant();
+    });
 
-          colorContainer.appendChild(colorBtn);
-        });
-      }
+    colorContainer.appendChild(colorBtn);
+  });
+}
+
 
       if (options.includes('Size')) {
         if (sizeIndex !== -1) {
