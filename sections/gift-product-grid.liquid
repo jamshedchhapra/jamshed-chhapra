@@ -271,26 +271,43 @@ FEATURES:
 
 <!-- ================= JAVASCRIPT ================= -->
 <script>
+/* =========================================================
+   LOOKBOOK QUICK SHOP — MASTER SCRIPT
+   - Variant-aware Quick Shop modal
+   - Color & Size selection
+   - Conditional Add to Cart bundle logic
+   - Vanilla JavaScript only
+========================================================= */
+
 document.addEventListener('DOMContentLoaded', () => {
-let currentVariants = [];
-let colorIndex = -1;
-let sizeIndex = -1;
-const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
+
+  /* ================= GLOBAL STATE ================= */
+  let currentVariants = [];
+  let colorIndex = -1;
+  let sizeIndex = -1;
+
+  /* Variant ID of Soft Winter Jacket */
+  const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
+
+  /* ================= DOM REFERENCES ================= */
   const section = document.querySelector('#lookbook-quickshop-{{ section.id }}');
   if (!section) return;
 
-  const modal = section.querySelector('.quickshop-modal');
-  const overlay = section.querySelector('.quickshop-overlay');
-  const closeBtn = section.querySelector('.quickshop-close');
+  const modal        = section.querySelector('.quickshop-modal');
+  const overlay      = section.querySelector('.quickshop-overlay');
+  const closeBtn     = section.querySelector('.quickshop-close');
 
-  const img = section.querySelector('#qs-image');
-  const title = section.querySelector('#qs-title');
-  const price = section.querySelector('#qs-price');
-  const description = section.querySelector('#qs-description');
+  const img          = section.querySelector('#qs-image');
+  const title        = section.querySelector('#qs-title');
+  const price        = section.querySelector('#qs-price');
+  const description  = section.querySelector('#qs-description');
+
   const variantInput = section.querySelector('#qs-variant-id');
-  const colorContainer = section.querySelector('#qs-colors');
-  const sizeSelect = section.querySelector('#qs-sizes');
+  const colorWrap    = section.querySelector('#qs-colors');
+  const sizeSelect   = section.querySelector('#qs-sizes');
+  const atcForm      = section.querySelector('.quickshop-form');
 
+  /* ================= UTIL ================= */
   function formatMoney(cents) {
     return (cents / 100).toLocaleString('en-US', {
       style: 'currency',
@@ -298,69 +315,72 @@ const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
     });
   }
 
-  section.querySelectorAll('.lookbook-trigger').forEach(btn => {
-    btn.addEventListener('click', () => {
+  /* =========================================================
+     OPEN QUICK SHOP MODAL
+  ========================================================= */
+  section.querySelectorAll('.lookbook-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
 
-      const variants = JSON.parse(btn.dataset.variants);
-        const options = JSON.parse(btn.dataset.options);
-        currentVariants = variants;
-        colorIndex = options.indexOf('Color');
-        sizeIndex = options.indexOf('Size');
-        /*const colorIndex = options.indexOf('Color');
-        const sizeIndex = options.indexOf('Size');*/
+      /* ---------- LOAD PRODUCT DATA ---------- */
+      currentVariants = JSON.parse(trigger.dataset.variants);
+      const options   = JSON.parse(trigger.dataset.options);
 
-      img.src = btn.dataset.image;
-      title.textContent = btn.dataset.title;
-      description.textContent = btn.dataset.description;
-      price.textContent = formatMoney(variants[0].price);
-      variantInput.value = variants[0].id;
+      colorIndex = options.indexOf('Color');
+      sizeIndex  = options.indexOf('Size');
 
-      colorContainer.innerHTML = '';
+      /* ---------- RESET UI ---------- */
+      colorWrap.innerHTML = '';
       sizeSelect.innerHTML = '<option value="">Choose your size</option>';
 
       let selectedColor = null;
-      let selectedSize = null;
+      let selectedSize  = null;
 
+      /* ---------- BASIC INFO ---------- */
+      img.src = trigger.dataset.image;
+      title.textContent = trigger.dataset.title;
+      description.textContent = trigger.dataset.description;
+      price.textContent = formatMoney(currentVariants[0].price);
+      variantInput.value = currentVariants[0].id;
+
+      /* ---------- COLOR OPTIONS ---------- */
       if (colorIndex !== -1) {
-  [...new Set(variants.map(v => v.options[colorIndex]))].forEach(color => {
-    const colorBtn = document.createElement('button');
-    colorBtn.type = 'button';
-    colorBtn.className = 'qs-color-btn';
-    colorBtn.textContent = color;
+        [...new Set(currentVariants.map(v => v.options[colorIndex]))].forEach(color => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'qs-color-btn';
+          btn.textContent = color;
 
-    colorBtn.addEventListener('click', () => {
-      section.querySelectorAll('.qs-color-btn').forEach(b =>
-        b.classList.remove('active')
-      );
-      colorBtn.classList.add('active');
-      selectedColor = color;
-      updateVariant();
-    });
+          btn.addEventListener('click', () => {
+            section.querySelectorAll('.qs-color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedColor = color;
+            updateVariant();
+          });
 
-    colorContainer.appendChild(colorBtn);
-  });
-}
+          colorWrap.appendChild(btn);
+        });
+      }
 
-
+      /* ---------- SIZE OPTIONS ---------- */
       if (sizeIndex !== -1) {
-  [...new Set(variants.map(v => v.options[sizeIndex]))].forEach(size => {
-    const opt = document.createElement('option');
-    opt.value = size;
-    opt.textContent = size;
-    sizeSelect.appendChild(opt);
-  });
+        [...new Set(currentVariants.map(v => v.options[sizeIndex]))].forEach(size => {
+          const opt = document.createElement('option');
+          opt.value = size;
+          opt.textContent = size;
+          sizeSelect.appendChild(opt);
+        });
 
-  sizeSelect.onchange = e => {
-    selectedSize = e.target.value;
-    updateVariant();
-  };
-}
+        sizeSelect.onchange = e => {
+          selectedSize = e.target.value;
+          updateVariant();
+        };
+      }
 
-
+      /* ---------- VARIANT MATCHING ---------- */
       function updateVariant() {
-        const match = variants.find(v =>
-        (!selectedColor || v.options[colorIndex] === selectedColor) &&
-        (!selectedSize || v.options[sizeIndex] === selectedSize)
+        const match = currentVariants.find(v =>
+          (!selectedColor || v.options[colorIndex] === selectedColor) &&
+          (!selectedSize  || v.options[sizeIndex]  === selectedSize)
         );
 
         if (match) {
@@ -369,11 +389,15 @@ const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
         }
       }
 
+      /* ---------- SHOW MODAL ---------- */
       modal.classList.add('active');
       modal.setAttribute('aria-hidden', 'false');
     });
   });
 
+  /* =========================================================
+     CLOSE MODAL
+  ========================================================= */
   [overlay, closeBtn].forEach(el => {
     el.addEventListener('click', () => {
       modal.classList.remove('active');
@@ -381,78 +405,59 @@ const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
     });
   });
 
-});
+  /* =========================================================
+     ADD TO CART OVERRIDE — CONDITIONAL BUNDLE
+     RULE:
+     If Color = Black AND Size = Medium
+     → Auto add Soft Winter Jacket
+  ========================================================= */
+  if (atcForm) {
+    atcForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-/* =========================================================
-   ADD TO CART OVERRIDE — CONDITIONAL BUNDLE LOGIC
-   RULE:
-   If selected variant has:
-   - Color = Black
-   - Size = Medium
-   → Automatically add "Soft Winter Jacket" to cart
-========================================================= */
+      const selectedVariantId = parseInt(variantInput.value, 10);
+      if (!selectedVariantId) return;
 
-const atcForm = section.querySelector('.quickshop-form');
+      const selectedVariant = currentVariants.find(v => v.id === selectedVariantId);
+      if (!selectedVariant) return;
 
-if (atcForm) {
-  atcForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Stop default form submit
+      const selectedColor = colorIndex !== -1 ? selectedVariant.options[colorIndex] : null;
+      const selectedSize  = sizeIndex  !== -1 ? selectedVariant.options[sizeIndex]  : null;
 
-    const selectedVariantId = parseInt(variantInput.value, 10);
+      /* ---------- CART ITEMS ---------- */
+      const items = [
+        { id: selectedVariantId, quantity: 1 }
+      ];
 
-    if (!selectedVariantId) return;
-
-    // Find selected variant details
-    const selectedVariant = currentVariants.find(
-      v => v.id === selectedVariantId
-    );
-
-    if (!selectedVariant) return;
-
-    const selectedColor = selectedVariant.options[colorIndex];
-    const selectedSize  = selectedVariant.options[sizeIndex];
-
-    /* ---------- BUILD CART ITEMS ---------- */
-    const itemsToAdd = [
-      {
-        id: selectedVariantId,
-        quantity: 1
+      if (selectedColor === 'Black' && selectedSize === 'Medium') {
+        items.push({
+          id: SOFT_WINTER_JACKET_VARIANT_ID,
+          quantity: 1
+        });
       }
-    ];
 
-    // Conditional rule
-    if (
-      selectedColor === 'Black' &&
-      selectedSize === 'Medium'
-    ) {
-      itemsToAdd.push({
-        id: SOFT_WINTER_JACKET_VARIANT_ID,
-        quantity: 1
-      });
-    }
+      /* ---------- AJAX ADD ---------- */
+      try {
+        await fetch('/cart/add.js', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ items })
+        });
 
-    /* ---------- AJAX ADD TO CART ---------- */
-    try {
-      await fetch('/cart/add.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          items: itemsToAdd
-        })
-      });
+        window.location.href = '/cart';
 
-      // Optional UX behavior
-      window.location.href = '/cart';
+      } catch (err) {
+        console.error('Add to cart error:', err);
+      }
+    });
+  }
 
-    } catch (error) {
-      console.error('Add to cart failed:', error);
-    }
-  });
-}
+});
 </script>
+
 
 {% schema %}
 {
