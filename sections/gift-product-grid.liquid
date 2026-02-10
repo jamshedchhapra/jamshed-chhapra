@@ -276,33 +276,38 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =========================================================
      GLOBAL STATE
   ========================================================= */
-  const SOFT_WINTER_JACKET_VARIANT_ID = 47569337188570;
-
   let currentVariants = [];
   let colorIndex = -1;
   let sizeIndex = -1;
 
-  /* =========================================================
-     ELEMENT REFERENCES
-  ========================================================= */
+  /* ---------------------------------------------------------
+     IMPORTANT:
+     This MUST be a VARIANT ID (not product ID)
+  --------------------------------------------------------- */
+  const SOFT_WINTER_JACKET_VARIANT_ID = 47569337188570;
+
   const section = document.querySelector('#lookbook-quickshop-{{ section.id }}');
   if (!section) return;
 
-  const modal        = section.querySelector('.quickshop-modal');
-  const overlay      = section.querySelector('.quickshop-overlay');
-  const closeBtn     = section.querySelector('.quickshop-close');
-  const atcForm      = section.querySelector('.quickshop-form');
+  /* =========================================================
+     DOM ELEMENTS
+  ========================================================= */
+  const modal = section.querySelector('.quickshop-modal');
+  const overlay = section.querySelector('.quickshop-overlay');
+  const closeBtn = section.querySelector('.quickshop-close');
 
-  const img          = section.querySelector('#qs-image');
-  const title        = section.querySelector('#qs-title');
-  const price        = section.querySelector('#qs-price');
-  const description  = section.querySelector('#qs-description');
+  const img = section.querySelector('#qs-image');
+  const title = section.querySelector('#qs-title');
+  const price = section.querySelector('#qs-price');
+  const description = section.querySelector('#qs-description');
   const variantInput = section.querySelector('#qs-variant-id');
-  const colorWrap    = section.querySelector('#qs-colors');
-  const sizeSelect   = section.querySelector('#qs-sizes');
+
+  const colorContainer = section.querySelector('#qs-colors');
+  const sizeSelect = section.querySelector('#qs-sizes');
+  const atcForm = section.querySelector('.quickshop-form');
 
   /* =========================================================
-     UTIL — MONEY FORMAT
+     HELPERS
   ========================================================= */
   function formatMoney(cents) {
     return (cents / 100).toLocaleString('en-US', {
@@ -314,24 +319,24 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =========================================================
      OPEN QUICK SHOP
   ========================================================= */
-  section.querySelectorAll('.lookbook-trigger').forEach(trigger => {
-    trigger.addEventListener('click', () => {
+  section.querySelectorAll('.lookbook-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
 
-      currentVariants = JSON.parse(trigger.dataset.variants);
-      const options   = JSON.parse(trigger.dataset.options);
+      const variants = JSON.parse(btn.dataset.variants);
+      const options  = JSON.parse(btn.dataset.options);
 
+      currentVariants = variants;
       colorIndex = options.indexOf('Color');
       sizeIndex  = options.indexOf('Size');
 
-      /* Populate base info */
-      img.src = trigger.dataset.image;
-      title.textContent = trigger.dataset.title;
-      description.textContent = trigger.dataset.description;
+      img.src = btn.dataset.image;
+      title.textContent = btn.dataset.title;
+      description.textContent = btn.dataset.description;
 
-      variantInput.value = currentVariants[0].id;
-      price.textContent  = formatMoney(currentVariants[0].price);
+      price.textContent = formatMoney(variants[0].price);
+      variantInput.value = variants[0].id;
 
-      colorWrap.innerHTML = '';
+      colorContainer.innerHTML = '';
       sizeSelect.innerHTML = '<option value="">Choose your size</option>';
 
       let selectedColor = null;
@@ -339,26 +344,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
       /* ---------- COLORS ---------- */
       if (colorIndex !== -1) {
-        [...new Set(currentVariants.map(v => v.options[colorIndex]))].forEach(color => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'qs-color-btn';
-          btn.textContent = color;
+        [...new Set(variants.map(v => v.options[colorIndex]))].forEach(color => {
+          const btnColor = document.createElement('button');
+          btnColor.type = 'button';
+          btnColor.className = 'qs-color-btn';
+          btnColor.textContent = color;
 
-          btn.addEventListener('click', () => {
-            colorWrap.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+          btnColor.addEventListener('click', () => {
+            section.querySelectorAll('.qs-color-btn')
+              .forEach(b => b.classList.remove('active'));
+
+            btnColor.classList.add('active');
             selectedColor = color;
             updateVariant();
           });
 
-          colorWrap.appendChild(btn);
+          colorContainer.appendChild(btnColor);
         });
       }
 
       /* ---------- SIZES ---------- */
       if (sizeIndex !== -1) {
-        [...new Set(currentVariants.map(v => v.options[sizeIndex]))].forEach(size => {
+        [...new Set(variants.map(v => v.options[sizeIndex]))].forEach(size => {
           const opt = document.createElement('option');
           opt.value = size;
           opt.textContent = size;
@@ -373,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       /* ---------- VARIANT MATCH ---------- */
       function updateVariant() {
-        const match = currentVariants.find(v =>
+        const match = variants.find(v =>
           (!selectedColor || v.options[colorIndex] === selectedColor) &&
           (!selectedSize  || v.options[sizeIndex]  === selectedSize)
         );
@@ -400,58 +407,57 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* =========================================================
-     ADD TO CART OVERRIDE — CONDITIONAL BUNDLE
+     ADD TO CART — CONDITIONAL BUNDLE LOGIC
      RULE:
-     If user selects:
-       Color = Black
-       Size  = Medium
-     → Auto add Soft Winter Jacket
+     If Color = Black AND Size = Medium
+     → Auto-add Soft Winter Jacket
   ========================================================= */
-  if (atcForm) {
-    atcForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  atcForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      const selectedVariantId = Number(variantInput.value);
-      if (!selectedVariantId) return;
+    const selectedVariantId = Number(variantInput.value);
+    if (!selectedVariantId) return;
 
-      const selectedVariant = currentVariants.find(v => v.id === selectedVariantId);
-      if (!selectedVariant) return;
+    const selectedVariant = currentVariants.find(
+      v => v.id === selectedVariantId
+    );
 
-      const selectedColor = selectedVariant.options[colorIndex];
-      const selectedSize  = selectedVariant.options[sizeIndex];
+    if (!selectedVariant) return;
 
-      const items = [
-        { id: selectedVariantId, quantity: 1 }
-      ];
+    const selectedColor = selectedVariant.options[colorIndex];
+    const selectedSize  = selectedVariant.options[sizeIndex];
 
-      if (selectedColor === 'Black' && selectedSize === 'Medium') {
-  items.push({
-    id: 47569337188570,
-    quantity: 1
+    const items = [
+      { id: selectedVariantId, quantity: 1 }
+    ];
+
+    if (selectedColor === 'Black' && selectedSize === 'Medium') {
+      items.push({
+        id: SOFT_WINTER_JACKET_VARIANT_ID,
+        quantity: 1
+      });
+    }
+
+    try {
+      await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ items })
+      });
+
+      window.location.href = '/cart';
+
+    } catch (err) {
+      console.error('Add to cart error:', err);
+    }
   });
-}
-
-
-      try {
-        await fetch('/cart/add.js', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ items })
-        });
-
-        window.location.href = '/cart';
-
-      } catch (err) {
-        console.error('Add to cart error:', err);
-      }
-    });
-  }
 
 });
 </script>
+
 
 
 
