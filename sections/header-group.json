@@ -31,6 +31,7 @@
       "block_order": [
         "announcement_BxgCk9"
       ],
+      "disabled": true,
       "name": "t:names.announcement_bar",
       "settings": {
         "speed": 5,
@@ -79,6 +80,7 @@
           "blocks": {}
         }
       },
+      "disabled": true,
       "settings": {
         "logo_position": "left",
         "menu_position": "left",
@@ -112,7 +114,6 @@
     },
     "gift_banner_VWzLXw": {
       "type": "gift-banner",
-      "disabled": true,
       "name": "Gift Banner",
       "settings": {
         "logo_text": "TISSO VISON",
@@ -176,7 +177,6 @@
         "product_nEqnLW",
         "product_C77kQt"
       ],
-      "disabled": true,
       "name": "Product Grid with Quick Shop",
       "settings": {
         "heading": "Tisso vison in the wild"
