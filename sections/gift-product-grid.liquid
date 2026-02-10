@@ -271,43 +271,39 @@ FEATURES:
 
 <!-- ================= JAVASCRIPT ================= -->
 <script>
-/* =========================================================
-   LOOKBOOK QUICK SHOP — MASTER SCRIPT
-   - Variant-aware Quick Shop modal
-   - Color & Size selection
-   - Conditional Add to Cart bundle logic
-   - Vanilla JavaScript only
-========================================================= */
-
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ================= GLOBAL STATE ================= */
+  /* =========================================================
+     GLOBAL STATE
+  ========================================================= */
+  const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
+
   let currentVariants = [];
   let colorIndex = -1;
   let sizeIndex = -1;
 
-  /* Variant ID of Soft Winter Jacket */
-  const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
-
-  /* ================= DOM REFERENCES ================= */
+  /* =========================================================
+     ELEMENT REFERENCES
+  ========================================================= */
   const section = document.querySelector('#lookbook-quickshop-{{ section.id }}');
   if (!section) return;
 
   const modal        = section.querySelector('.quickshop-modal');
   const overlay      = section.querySelector('.quickshop-overlay');
   const closeBtn     = section.querySelector('.quickshop-close');
+  const atcForm      = section.querySelector('.quickshop-form');
 
   const img          = section.querySelector('#qs-image');
   const title        = section.querySelector('#qs-title');
   const price        = section.querySelector('#qs-price');
   const description  = section.querySelector('#qs-description');
-
   const variantInput = section.querySelector('#qs-variant-id');
   const colorWrap    = section.querySelector('#qs-colors');
   const sizeSelect   = section.querySelector('#qs-sizes');
-  const atcForm      = section.querySelector('.quickshop-form');
 
-  /* ================= UTIL ================= */
+  /* =========================================================
+     UTIL — MONEY FORMAT
+  ========================================================= */
   function formatMoney(cents) {
     return (cents / 100).toLocaleString('en-US', {
       style: 'currency',
@@ -316,33 +312,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =========================================================
-     OPEN QUICK SHOP MODAL
+     OPEN QUICK SHOP
   ========================================================= */
   section.querySelectorAll('.lookbook-trigger').forEach(trigger => {
     trigger.addEventListener('click', () => {
 
-      /* ---------- LOAD PRODUCT DATA ---------- */
       currentVariants = JSON.parse(trigger.dataset.variants);
       const options   = JSON.parse(trigger.dataset.options);
 
       colorIndex = options.indexOf('Color');
       sizeIndex  = options.indexOf('Size');
 
-      /* ---------- RESET UI ---------- */
+      /* Populate base info */
+      img.src = trigger.dataset.image;
+      title.textContent = trigger.dataset.title;
+      description.textContent = trigger.dataset.description;
+
+      variantInput.value = currentVariants[0].id;
+      price.textContent  = formatMoney(currentVariants[0].price);
+
       colorWrap.innerHTML = '';
       sizeSelect.innerHTML = '<option value="">Choose your size</option>';
 
       let selectedColor = null;
       let selectedSize  = null;
 
-      /* ---------- BASIC INFO ---------- */
-      img.src = trigger.dataset.image;
-      title.textContent = trigger.dataset.title;
-      description.textContent = trigger.dataset.description;
-      price.textContent = formatMoney(currentVariants[0].price);
-      variantInput.value = currentVariants[0].id;
-
-      /* ---------- COLOR OPTIONS ---------- */
+      /* ---------- COLORS ---------- */
       if (colorIndex !== -1) {
         [...new Set(currentVariants.map(v => v.options[colorIndex]))].forEach(color => {
           const btn = document.createElement('button');
@@ -351,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
           btn.textContent = color;
 
           btn.addEventListener('click', () => {
-            section.querySelectorAll('.qs-color-btn').forEach(b => b.classList.remove('active'));
+            colorWrap.querySelectorAll('button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             selectedColor = color;
             updateVariant();
@@ -361,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      /* ---------- SIZE OPTIONS ---------- */
+      /* ---------- SIZES ---------- */
       if (sizeIndex !== -1) {
         [...new Set(currentVariants.map(v => v.options[sizeIndex]))].forEach(size => {
           const opt = document.createElement('option');
@@ -376,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
       }
 
-      /* ---------- VARIANT MATCHING ---------- */
+      /* ---------- VARIANT MATCH ---------- */
       function updateVariant() {
         const match = currentVariants.find(v =>
           (!selectedColor || v.options[colorIndex] === selectedColor) &&
@@ -389,7 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      /* ---------- SHOW MODAL ---------- */
       modal.classList.add('active');
       modal.setAttribute('aria-hidden', 'false');
     });
@@ -408,23 +402,24 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =========================================================
      ADD TO CART OVERRIDE — CONDITIONAL BUNDLE
      RULE:
-     If Color = Black AND Size = Medium
+     If user selects:
+       Color = Black
+       Size  = Medium
      → Auto add Soft Winter Jacket
   ========================================================= */
   if (atcForm) {
     atcForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const selectedVariantId = parseInt(variantInput.value, 10);
+      const selectedVariantId = Number(variantInput.value);
       if (!selectedVariantId) return;
 
       const selectedVariant = currentVariants.find(v => v.id === selectedVariantId);
       if (!selectedVariant) return;
 
-      const selectedColor = colorIndex !== -1 ? selectedVariant.options[colorIndex] : null;
-      const selectedSize  = sizeIndex  !== -1 ? selectedVariant.options[sizeIndex]  : null;
+      const selectedColor = selectedVariant.options[colorIndex];
+      const selectedSize  = selectedVariant.options[sizeIndex];
 
-      /* ---------- CART ITEMS ---------- */
       const items = [
         { id: selectedVariantId, quantity: 1 }
       ];
@@ -436,7 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      /* ---------- AJAX ADD ---------- */
       try {
         await fetch('/cart/add.js', {
           method: 'POST',
@@ -457,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 </script>
+
 
 
 {% schema %}
