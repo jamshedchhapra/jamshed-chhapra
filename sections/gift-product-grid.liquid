@@ -297,17 +297,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- OPEN MODAL ---------- */
   section.querySelectorAll('.lookbook-trigger').forEach(btn => {
-    btn.addEventListener('click', () => {
-      img.src = btn.dataset.image;
-      img.alt = btn.dataset.title;
-      title.textContent = btn.dataset.title;
-      price.textContent = btn.dataset.price;
-      variantInput.value = btn.dataset.variant;
+  btn.addEventListener('click', () => {
 
-      modal.classList.add('active');
-      modal.setAttribute('aria-hidden', 'false');
-    });
+    const variants = JSON.parse(btn.dataset.variants);
+    const options = JSON.parse(btn.dataset.options);
+
+    img.src = btn.dataset.image;
+    title.textContent = btn.dataset.title;
+    price.textContent = Shopify.formatMoney(variants[0].price);
+    document.getElementById('qs-description').textContent = btn.dataset.description;
+
+    const colorContainer = document.getElementById('qs-colors');
+    const sizeSelect = document.getElementById('qs-sizes');
+
+    colorContainer.innerHTML = '';
+    sizeSelect.innerHTML = '<option value="">Choose your size</option>';
+
+    let selectedColor = null;
+    let selectedSize = null;
+
+    /* ---------- COLORS ---------- */
+    if (options.includes('Color')) {
+      [...new Set(variants.map(v => v.option1))].forEach(color => {
+        const btnColor = document.createElement('button');
+        btnColor.className = 'qs-color-btn';
+        btnColor.textContent = color;
+
+        btnColor.addEventListener('click', () => {
+          document.querySelectorAll('.qs-color-btn').forEach(b => b.classList.remove('active'));
+          btnColor.classList.add('active');
+          selectedColor = color;
+          updateVariant();
+        });
+
+        colorContainer.appendChild(btnColor);
+      });
+    }
+
+    /* ---------- SIZES ---------- */
+    if (options.includes('Size')) {
+      [...new Set(variants.map(v => v.option2))].forEach(size => {
+        const opt = document.createElement('option');
+        opt.value = size;
+        opt.textContent = size;
+        sizeSelect.appendChild(opt);
+      });
+
+      sizeSelect.addEventListener('change', e => {
+        selectedSize = e.target.value;
+        updateVariant();
+      });
+    }
+
+    /* ---------- VARIANT MATCH ---------- */
+    function updateVariant() {
+      const match = variants.find(v =>
+        (!selectedColor || v.option1 === selectedColor) &&
+        (!selectedSize || v.option2 === selectedSize)
+      );
+
+      if (match) {
+        variantInput.value = match.id;
+        price.textContent = Shopify.formatMoney(match.price);
+      }
+    }
+
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
   });
+});
+
 
   /* ---------- CLOSE MODAL ---------- */
   [overlay, closeBtn].forEach(el => {
