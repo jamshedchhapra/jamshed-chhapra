@@ -275,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
 let currentVariants = [];
 let colorIndex = -1;
 let sizeIndex = -1;
-
 const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
   const section = document.querySelector('#lookbook-quickshop-{{ section.id }}');
   if (!section) return;
@@ -307,8 +306,8 @@ const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
         currentVariants = variants;
         colorIndex = options.indexOf('Color');
         sizeIndex = options.indexOf('Size');
-        const colorIndex = options.indexOf('Color');
-        const sizeIndex = options.indexOf('Size');
+        /*const colorIndex = options.indexOf('Color');
+        const sizeIndex = options.indexOf('Size');*/
 
       img.src = btn.dataset.image;
       title.textContent = btn.dataset.title;
