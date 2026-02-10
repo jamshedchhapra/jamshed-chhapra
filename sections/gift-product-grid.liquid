@@ -351,8 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       function updateVariant() {
         const match = variants.find(v =>
-          (!selectedColor || v.option1 === selectedColor) &&
-          (!selectedSize || v.option2 === selectedSize)
+        (!selectedColor || v.options[colorIndex] === selectedColor) &&
+        (!selectedSize || v.options[sizeIndex] === selectedSize)
         );
 
         if (match) {
