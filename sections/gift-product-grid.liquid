@@ -304,6 +304,9 @@ const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
 
       const variants = JSON.parse(btn.dataset.variants);
         const options = JSON.parse(btn.dataset.options);
+        currentVariants = variants;
+        colorIndex = options.indexOf('Color');
+        sizeIndex = options.indexOf('Size');
         const colorIndex = options.indexOf('Color');
         const sizeIndex = options.indexOf('Size');
 
