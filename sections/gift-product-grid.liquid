@@ -72,52 +72,53 @@ FEATURES:
   </div>
 
   <!-- ================= QUICK SHOP MODAL ================= -->
-  <div class="quickshop-modal" aria-hidden="true">
+<div class="quickshop-modal" hidden>
+  <div class="quickshop-overlay"></div>
 
-    <div class="quickshop-overlay"></div>
+  <div class="quickshop-content" role="dialog" aria-modal="true">
 
-    <div class="quickshop-content">
+    <!-- Close -->
+    <button class="quickshop-close" aria-label="Close quick shop">✕</button>
 
-      <!-- Close Button -->
-      <button
-        type="button"
-        class="quickshop-close"
-        aria-label="Close quick shop"
-      >
-        ×
-      </button>
-
-      <!-- Product Image -->
-      <div class="quickshop-image">
-        <img
-          id="qs-image"
-          src="{{ 'transparent.png' | asset_url }}"
-          width="600"
-          height="800"
-          alt=""
-        >
-      </div>
-
-      <!-- Product Info -->
-      <div class="quickshop-info">
-        <h3 id="qs-title"></h3>
-        <p id="qs-price"></p>
-
-        <!-- Add to Cart Form -->
-        <form
-          method="post"
-          action="{{ routes.cart_add_url }}"
-          class="quickshop-form"
-        >
-          <input type="hidden" name="id" id="qs-variant-id">
-          <button type="submit" class="quickshop-atc">
-            Add to Cart
-          </button>
-        </form>
-      </div>
-
+    <!-- Image -->
+    <div class="quickshop-image">
+      <img
+        id="qs-image"
+        width="600"
+        height="800"
+        alt=""
+        hidden>
     </div>
+
+    <!-- Details -->
+    <div class="quickshop-details">
+
+      <h2 id="qs-title"></h2>
+      <p id="qs-price"></p>
+
+      <div id="qs-description"></div>
+
+      <!-- Variants -->
+      <form id="qs-form">
+
+        <!-- Color options -->
+        <div id="qs-colors"></div>
+
+        <!-- Size dropdown -->
+        <label for="qs-size">Size</label>
+        <select id="qs-size" name="id" required></select>
+
+        <!-- Add to Cart -->
+        <button type="submit" class="btn add-to-cart">
+          Add to Cart →
+        </button>
+
+      </form>
+    </div>
+
   </div>
+</div>
+
 
 </section>
 
