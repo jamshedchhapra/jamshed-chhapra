@@ -382,6 +382,77 @@ const SOFT_WINTER_JACKET_VARIANT_ID = 9159215710426;
   });
 
 });
+
+/* =========================================================
+   ADD TO CART OVERRIDE — CONDITIONAL BUNDLE LOGIC
+   RULE:
+   If selected variant has:
+   - Color = Black
+   - Size = Medium
+   → Automatically add "Soft Winter Jacket" to cart
+========================================================= */
+
+const atcForm = section.querySelector('.quickshop-form');
+
+if (atcForm) {
+  atcForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Stop default form submit
+
+    const selectedVariantId = parseInt(variantInput.value, 10);
+
+    if (!selectedVariantId) return;
+
+    // Find selected variant details
+    const selectedVariant = currentVariants.find(
+      v => v.id === selectedVariantId
+    );
+
+    if (!selectedVariant) return;
+
+    const selectedColor = selectedVariant.options[colorIndex];
+    const selectedSize  = selectedVariant.options[sizeIndex];
+
+    /* ---------- BUILD CART ITEMS ---------- */
+    const itemsToAdd = [
+      {
+        id: selectedVariantId,
+        quantity: 1
+      }
+    ];
+
+    // Conditional rule
+    if (
+      selectedColor === 'Black' &&
+      selectedSize === 'Medium'
+    ) {
+      itemsToAdd.push({
+        id: SOFT_WINTER_JACKET_VARIANT_ID,
+        quantity: 1
+      });
+    }
+
+    /* ---------- AJAX ADD TO CART ---------- */
+    try {
+      await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          items: itemsToAdd
+        })
+      });
+
+      // Optional UX behavior
+      window.location.href = '/cart';
+
+    } catch (error) {
+      console.error('Add to cart failed:', error);
+    }
+  });
+}
+
 </script>
 
 {% schema %}
