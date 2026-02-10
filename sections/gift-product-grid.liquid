@@ -336,20 +336,20 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 
-      if (options.includes('Size')) {
-        if (sizeIndex !== -1) {
-        [...new Set(variants.map(v => v.options[sizeIndex]))].forEach(size => {
-          const opt = document.createElement('option');
-          opt.value = size;
-          opt.textContent = size;
-          sizeSelect.appendChild(opt);
-        });
+      if (sizeIndex !== -1) {
+  [...new Set(variants.map(v => v.options[sizeIndex]))].forEach(size => {
+    const opt = document.createElement('option');
+    opt.value = size;
+    opt.textContent = size;
+    sizeSelect.appendChild(opt);
+  });
 
-        sizeSelect.onchange = e => {
-          selectedSize = e.target.value;
-          updateVariant();
-        };
-      }
+  sizeSelect.onchange = e => {
+    selectedSize = e.target.value;
+    updateVariant();
+  };
+}
+
 
       function updateVariant() {
         const match = variants.find(v =>
