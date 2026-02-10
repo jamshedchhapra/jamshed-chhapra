@@ -299,7 +299,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
 
       const variants = JSON.parse(btn.dataset.variants);
-      const options = JSON.parse(btn.dataset.options);
+        const options = JSON.parse(btn.dataset.options);
+        const colorIndex = options.indexOf('Color');
+        const sizeIndex = options.indexOf('Size');
 
       img.src = btn.dataset.image;
       title.textContent = btn.dataset.title;
