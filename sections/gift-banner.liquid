@@ -1,93 +1,105 @@
 {% comment %}
 =========================================================
-SECTION: Gift Banner
-Custom coded – no Dawn/Horizon reuse
-Responsive, schema-driven, vanilla JS
+SECTION: Gift Banner (Production Ready)
+AUTHOR: Custom Shopify Section
+FEATURES:
+- Editable logo, headings, buttons
+- Top full-width image
+- Right-side image
+- Grid layout like Figma
+- Object-fit cover for perfect spacing
+- Mobile hide toggles for images & text
+- Responsive mobile layout
+- Animated buttons
+- Hamburger menu
 =========================================================
 {% endcomment %}
 
-<section class="gift-banner" id="gift-banner-{{ section.id }}">
+<section id="gift-banner-{{ section.id }}" class="gift-banner">
 
   <!-- ================= TOP BAR ================= -->
   <header class="gift-topbar">
     <div class="topbar-inner">
 
-      <!-- Hamburger (Mobile) -->
-      <button class="hamburger" aria-label="Menu">
-        ☰
-      </button>
+      <!-- Mobile Hamburger -->
+      <button class="hamburger" aria-label="Menu">☰</button>
 
       <!-- Logo Text -->
       <div class="topbar-logo">
         {{ section.settings.logo_text }}
       </div>
 
-      <!-- Center Heading (Desktop only) -->
-      <div class="topbar-heading">
+      <!-- Desktop Heading -->
+      {% if section.settings.show_topbar_heading %}
+      <div class="topbar-heading desktop-only">
         {{ section.settings.topbar_heading }}
       </div>
+      {% endif %}
 
-      <!-- Choose Gift Button (Desktop only) -->
-      <a href="{{ section.settings.topbar_button_link }}"
-         class="btn choose-gift desktop-only">
+      <!-- Desktop Button -->
+      <a href="{{ section.settings.topbar_button_link }}" class="btn choose-gift desktop-only">
         {{ section.settings.topbar_button_text }}
         <span class="arrow">→</span>
       </a>
+
     </div>
 
     <!-- Mobile Menu -->
     <div class="mobile-menu">
-      <a href="{{ section.settings.topbar_button_link }}"
-         class="btn choose-gift mobile-only">
+      <a href="{{ section.settings.topbar_button_link }}" class="btn choose-gift mobile-only">
         {{ section.settings.topbar_button_text }}
         <span class="arrow">→</span>
       </a>
     </div>
   </header>
 
-  <!-- ================= BANNER ================= -->
+  <!-- ================= BANNER GRID ================= -->
   <div class="gift-banner-grid">
 
-    <!-- Full Width Top Image -->
-    <div class="banner-image-full">
+    <!-- TOP FULL IMAGE -->
+    {% if section.settings.show_top_image %}
+    <div class="banner-image-full {% if section.settings.hide_top_image_mobile %}hide-mobile{% endif %}">
       <img
-        src="{{ section.settings.banner_top_image | image_url: width: 2000 }}"
-        width="2000"
-        height="600"
-        alt="Gift banner image"
+        src="{{ section.settings.banner_top_image | image_url: width: 2500 }}"
+        alt="Gift Banner Top"
         loading="lazy">
     </div>
+    {% endif %}
 
-    <!-- Text Block -->
-    <div class="banner-text">
+    <!-- TEXT BLOCK -->
+    {% if section.settings.show_text_block %}
+    <div class="banner-text {% if section.settings.hide_text_mobile %}hide-mobile{% endif %}">
       <h1>{{ section.settings.hero_heading }}</h1>
       <p>{{ section.settings.hero_description }}</p>
 
-      <a href="{{ section.settings.hero_button_link }}"
-         class="btn shop-now">
+      <a href="{{ section.settings.hero_button_link }}" class="btn shop-now">
         {{ section.settings.hero_button_text }}
         <span class="arrow">→</span>
       </a>
     </div>
+    {% endif %}
 
-    <!-- Right Image -->
-    <div class="banner-image-right">
+    <!-- SIDE IMAGE -->
+    {% if section.settings.show_side_image %}
+    <div class="banner-image-right {% if section.settings.hide_side_image_mobile %}hide-mobile{% endif %}">
       <img
-        src="{{ section.settings.banner_side_image | image_url: width: 1200 }}"
-        width="1200"
-        height="800"
-        alt="Gift side image"
+        src="{{ section.settings.banner_side_image | image_url: width: 1600 }}"
+        alt="Gift Banner Side"
         loading="lazy">
     </div>
+    {% endif %}
 
   </div>
 
   <!-- ================= INFO BAR ================= -->
+  {% if section.settings.show_info_bar %}
   <div class="gift-infobar">
     {{ section.settings.info_text }}
   </div>
+  {% endif %}
 
 </section>
+
 
 <!-- ================= STYLES ================= -->
 <style>
@@ -105,16 +117,18 @@ Responsive, schema-driven, vanilla JS
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  padding: 18px 24px;
+  position: relative;
 }
 
 .topbar-logo {
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .topbar-heading {
   font-size: 16px;
+  font-weight: 400;
 }
 
 .hamburger {
@@ -122,6 +136,7 @@ Responsive, schema-driven, vanilla JS
   background: none;
   border: none;
   font-size: 22px;
+  cursor: pointer;
 }
 
 .mobile-menu {
@@ -130,43 +145,60 @@ Responsive, schema-driven, vanilla JS
   background: #f2f2f2;
 }
 
-/* ---------- BANNER GRID ---------- */
+/* ---------- GRID LAYOUT ---------- */
 .gift-banner-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
 }
 
+/* Full width top image */
 .banner-image-full {
   grid-column: 1 / -1;
+  height: 420px;
 }
-
-.banner-image-full img,
-.banner-image-right img {
+.banner-image-full img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover; /* IMPORTANT */
   display: block;
 }
 
+/* Text block */
 .banner-text {
-  padding: 60px;
+  padding: 80px 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
-
 .banner-text h1 {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 56px;
+  margin-bottom: 18px;
 }
-
 .banner-text p {
   font-size: 18px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  max-width: 460px;
+}
+
+/* Right image */
+.banner-image-right {
+  height: 100%;
+}
+.banner-image-right img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* IMPORTANT */
+  display: block;
 }
 
 /* ---------- INFO BAR ---------- */
 .gift-infobar {
   background: #f5f5f5;
   text-align: center;
-  padding: 12px;
+  padding: 14px;
   font-size: 14px;
+  letter-spacing: 1px;
 }
 
 /* ---------- BUTTONS ---------- */
@@ -176,135 +208,143 @@ Responsive, schema-driven, vanilla JS
   align-items: center;
   gap: 10px;
   padding: 14px 26px;
-  text-transform: uppercase;
-  overflow: hidden;
   border: 2px solid #000;
+  text-transform: uppercase;
+  font-weight: 500;
+  overflow: hidden;
   transition: color .3s ease;
-  isolation: isolate; /* 🔑 creates safe stacking context */
+  isolation: isolate;
 }
 
-/* Animated background */
 .btn::before {
   content: '';
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
   transition: transform .3s ease;
-  z-index: -1; /* 🔑 keep background behind text */
+  z-index: -1;
 }
 
-/* Text & arrow always above */
-.btn,
-.btn span,
-.btn .arrow {
-  position: relative;
-  z-index: 1;
-}
-
-
-/* Choose Gift */
 .choose-gift {
   background: #fff544;
   color: #000;
 }
+.choose-gift::before { background: #000; }
+.choose-gift:hover::before { transform: translateX(0); }
+.choose-gift:hover { color: #fff; }
 
-.choose-gift::before {
-  background: #000;
-}
-
-/* Hover state */
-.choose-gift:hover::before {
-  transform: translateX(0);
-}
-
-.choose-gift:hover {
-  color: #fff; /* ✅ TEXT TURNS WHITE */
-}
-
-
-/* Shop Now */
 .shop-now {
   background: #000;
   color: #fff;
 }
-.shop-now::before {
-  background: #fff544;
-}
-.shop-now:hover::before {
-  transform: translateX(0);
-}
-.shop-now:hover {
-  color: #000;
-}
+.shop-now::before { background: #fff544; }
+.shop-now:hover::before { transform: translateX(0); }
+.shop-now:hover { color: #000; }
 
-/* ---------- RESPONSIVE ---------- */
+/* ---------- UTILITIES ---------- */
 .desktop-only { display: inline-flex; }
 .mobile-only { display: none; }
+.hide-mobile {}
 
-@media (max-width: 768px) {
-  .hamburger { display: block; }
-  .topbar-heading,
-  .desktop-only { display: none; }
-
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 900px) {
   .gift-banner-grid {
     grid-template-columns: 1fr;
   }
 
+  .banner-image-full {
+    height: 300px;
+  }
+
   .banner-text {
+    padding: 40px 22px;
     text-align: center;
-    padding: 40px 20px;
   }
 
-  .mobile-only {
-    display: inline-flex;
+  .banner-text h1 {
+    font-size: 36px;
   }
 
-  .mobile-menu.active {
-    display: block;
+  .banner-text p {
+    max-width: 100%;
   }
+
+  .banner-image-right {
+    height: 360px;
+  }
+
+  .hamburger { display: block; }
+  .desktop-only { display: none; }
+  .mobile-only { display: inline-flex; }
+
   .topbar-logo {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    text-align: center;
-    width: max-content;
+  }
+
+  .hide-mobile {
+    display: none !important;
   }
 }
-}
 
+.mobile-menu.active {
+  display: block;
+}
 </style>
 
-<!-- ================= JS ================= -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const hamburger = document.querySelector('#gift-banner-{{ section.id }} .hamburger');
-  const menu = document.querySelector('#gift-banner-{{ section.id }} .mobile-menu');
 
-  hamburger.addEventListener('click', () => {
-    menu.classList.toggle('active');
-  });
+<!-- ================= JAVASCRIPT ================= -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const section = document.querySelector('#gift-banner-{{ section.id }}');
+  if (!section) return;
+
+  const hamburger = section.querySelector('.hamburger');
+  const menu = section.querySelector('.mobile-menu');
+
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      menu.classList.toggle('active');
+    });
+  }
 });
 </script>
 
+
 {% schema %}
 {
-  "name": "Gift Banner",
+  "name": "Gift Banner (Advanced)",
   "settings": [
     { "type": "text", "id": "logo_text", "label": "Logo Text", "default": "TISSO VISON" },
-    { "type": "text", "id": "topbar_heading", "label": "Top Bar Heading", "default": "Find the ideal gift for your loved ones." },
-    { "type": "text", "id": "topbar_button_text", "label": "Choose Gift Button Text", "default": "Choose Gift" },
-    { "type": "url", "id": "topbar_button_link", "label": "Choose Gift Link" },
 
+    { "type": "checkbox", "id": "show_topbar_heading", "label": "Show Top Bar Heading", "default": true },
+    { "type": "text", "id": "topbar_heading", "label": "Top Bar Heading", "default": "Find the ideal gift for your loved ones." },
+
+    { "type": "text", "id": "topbar_button_text", "label": "Top Bar Button Text", "default": "Choose Gift" },
+    { "type": "url", "id": "topbar_button_link", "label": "Top Bar Button Link" },
+
+    { "type": "checkbox", "id": "show_top_image", "label": "Show Top Image", "default": true },
+    { "type": "checkbox", "id": "hide_top_image_mobile", "label": "Hide Top Image on Mobile", "default": false },
     { "type": "image_picker", "id": "banner_top_image", "label": "Top Banner Image" },
+
+    { "type": "checkbox", "id": "show_text_block", "label": "Show Text Block", "default": true },
+    { "type": "checkbox", "id": "hide_text_mobile", "label": "Hide Text on Mobile", "default": false },
+
+    { "type": "text", "id": "hero_heading", "label": "Hero Heading", "default": "The Gift Guide" },
+    { "type": "textarea", "id": "hero_description", "label": "Hero Description", "default": "Discover Joy: Your Ultimate Holiday Gift Destination." },
+    { "type": "text", "id": "hero_button_text", "label": "Hero Button Text", "default": "Shop Now" },
+    { "type": "url", "id": "hero_button_link", "label": "Hero Button Link" },
+
+    { "type": "checkbox", "id": "show_side_image", "label": "Show Side Image", "default": true },
+    { "type": "checkbox", "id": "hide_side_image_mobile", "label": "Hide Side Image on Mobile", "default": false },
     { "type": "image_picker", "id": "banner_side_image", "label": "Side Banner Image" },
 
-    { "type": "text", "id": "hero_heading", "label": "Banner Heading", "default": "The Gift Guide" },
-    { "type": "textarea", "id": "hero_description", "label": "Banner Description", "default": "Discover Joy: Your Ultimate Holiday Gift Destination." },
-    { "type": "text", "id": "hero_button_text", "label": "Shop Now Button Text", "default": "Shop Now" },
-    { "type": "url", "id": "hero_button_link", "label": "Shop Now Link" },
-
+    { "type": "checkbox", "id": "show_info_bar", "label": "Show Info Bar", "default": true },
     { "type": "text", "id": "info_text", "label": "Info Bar Text", "default": "SUSTAINABLE, ETHICALLY MADE ACTIVEWEAR" }
   ],
-  "presets": [{ "name": "Gift Banner" }]
+  "presets": [
+    { "name": "Gift Banner (Advanced)" }
+  ]
 }
 {% endschema %}
